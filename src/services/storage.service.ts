@@ -1,5 +1,5 @@
 import { MOCK_DATABASE_VERSION, STORAGE_KEYS } from '@/constants/storage'
-import { createInitialDatabase } from '@/mocks'
+import { createDatabasePreset, createInitialDatabase, type MockDataPreset } from '@/mocks'
 import type {
   Courier,
   DatabaseSnapshot,
@@ -260,7 +260,11 @@ export const storageService = {
   },
 
   resetToMock(): DatabaseSnapshot {
-    const snapshot = createInitialDatabase()
+    return this.resetToPreset('full')
+  },
+
+  resetToPreset(preset: MockDataPreset): DatabaseSnapshot {
+    const snapshot = createDatabasePreset(preset)
     this.saveSnapshot(snapshot)
     this.clearSession()
     if (!REMOTE_MODE) {

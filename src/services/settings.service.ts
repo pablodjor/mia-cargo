@@ -1,8 +1,8 @@
 import { delay } from '@/utils/delay'
-import { storageService } from './storage.service'
-import type { FailureReason } from '@/types'
 import { MOCK_DATABASE_VERSION } from '@/constants/storage'
-import type { DatabaseSnapshot } from '@/types'
+import type { MockDataPreset } from '@/mocks'
+import type { DatabaseSnapshot, FailureReason } from '@/types'
+import { storageService } from './storage.service'
 
 export const settingsService = {
   async getCounts(): Promise<Record<string, number>> {
@@ -30,6 +30,11 @@ export const settingsService = {
   async restoreMocks(): Promise<DatabaseSnapshot> {
     await delay()
     return storageService.resetToMock()
+  },
+
+  async applyMockPreset(preset: MockDataPreset): Promise<DatabaseSnapshot> {
+    await delay()
+    return storageService.resetToPreset(preset)
   },
 
   async clearLocalData(): Promise<void> {

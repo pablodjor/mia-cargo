@@ -8,9 +8,36 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { MetricCard } from '@/components/ui/MetricCard'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useAsyncData } from '@/hooks/useAsyncData'
+import type { MockDataPreset } from '@/mocks'
 import { settingsService } from '@/services/settings.service'
 
-type Action = 'restore' | 'clear' | 'reload' | null
+type Action = MockDataPreset | 'clear' | null
+
+const PRESET_COPY: Record<
+  MockDataPreset,
+  { title: string; description: string; button: string; variant?: 'primary' | 'outline' | 'secondary' }
+> = {
+  empty: {
+    title: 'Cargar base vacía',
+    description:
+      'Queda solo la configuración mínima (usuarios y motivos de fallo). Podés cargar tus propios paquetes, clientes y repartos.',
+    button: 'Vacío',
+    variant: 'outline',
+  },
+  full: {
+    title: 'Cargar base completa',
+    description: 'Restaura el conjunto de datos de ejemplo actual, con paquetes, repartos e historial.',
+    button: 'Completo',
+    variant: 'primary',
+  },
+  minimal: {
+    title: 'Cargar base reducida',
+    description:
+      'Un subconjunto chico para probar rápido: pocos clientes, 6 paquetes y 1 reparto.',
+    button: 'Reducido',
+    variant: 'outline',
+  },
+}
 
 export default function SettingsPage() {
   const { theme } = useTheme()
@@ -22,9 +49,10 @@ export default function SettingsPage() {
 
   const execute = async () => {
     try {
-      if (action === 'restore') await settingsService.restoreMocks()
+      if (action === 'empty' || action === 'full' || action === 'minimal') {
+        await settingsService.applyMockPreset(action)
+      }
       if (action === 'clear') await settingsService.clearLocalData()
-      if (action === 'reload') await settingsService.reloadDemo()
       toast.success('Datos actualizados')
       window.location.reload()
     } catch (error) {
@@ -36,11 +64,20 @@ export default function SettingsPage() {
   }
 
   const title =
-    action === 'restore'
-      ? 'Restaurar datos iniciales'
-      : action === 'clear'
-        ? 'Borrar todos los datos'
-        : 'Recargar aplicación'
+    action === 'clear'
+      ? 'Borrar todos los datos'
+      : action
+        ? PRESET_COPY[action].title
+        : ''
+
+  const description =
+    action === 'clear'
+      ? data?.info.remoteDemo
+        ? 'Se borran los datos compartidos para todos los usuarios conectados.'
+        : 'Se borran los datos guardados en este navegador.'
+      : action
+        ? PRESET_COPY[action].description
+        : ''
 
   if (loading) return <PageLoader label="Cargando configuración…" />
 
@@ -74,14 +111,23 @@ export default function SettingsPage() {
         ))}
       </div>
 
-      <Card title="Datos del sistema">
+      <Card title="Conjunto de datos">
+        <p className="mb-4 text-sm text-text-secondary">
+          Elegí con qué datos arrancar. Cada opción reemplaza paquetes, clientes, repartos e historial.
+          {data?.info.remoteDemo ? ' En este entorno los cambios los ven todos los dispositivos.' : null}
+        </p>
         <div className="flex flex-wrap gap-2">
-          <Button onClick={() => setAction('restore')}>Restaurar datos iniciales</Button>
+          {(Object.keys(PRESET_COPY) as MockDataPreset[]).map((preset) => (
+            <Button
+              key={preset}
+              variant={PRESET_COPY[preset].variant ?? 'outline'}
+              onClick={() => setAction(preset)}
+            >
+              {PRESET_COPY[preset].button}
+            </Button>
+          ))}
           <Button variant="danger" onClick={() => setAction('clear')}>
-            Borrar datos
-          </Button>
-          <Button variant="outline" onClick={() => setAction('reload')}>
-            Recargar
+            Borrar todo
           </Button>
         </div>
       </Card>
@@ -89,11 +135,7 @@ export default function SettingsPage() {
       <ConfirmDialog
         open={action !== null}
         title={title}
-        description={
-          data?.info.remoteDemo
-            ? 'Esta acción afecta los datos de todos los usuarios conectados.'
-            : 'Esta acción modifica los datos guardados en este navegador.'
-        }
+        description={description}
         tone={action === 'clear' ? 'danger' : 'primary'}
         onCancel={() => setAction(null)}
         onConfirm={() => void execute()}
