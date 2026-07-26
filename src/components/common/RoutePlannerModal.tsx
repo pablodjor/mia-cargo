@@ -1,4 +1,4 @@
-import { Bot, MapPin, Route, Sparkles, X } from 'lucide-react'
+import { MapPin, Route, Sparkles, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { PackagePaymentInfo } from '@/components/common/PackagePaymentInfo'
 import { RouteMapPreview } from '@/components/common/RouteMapPreview'
@@ -175,11 +175,11 @@ export function RoutePlannerModal({
     <Modal
       open={open}
       onClose={onClose}
-      title={isCourier ? 'Ruta al correo' : 'Planificador inteligente de ruta'}
+      title={isCourier ? 'Ruta al correo' : 'Planificador de ruta'}
       description={
         isCourier
-          ? 'Asistente para armar el lote de SH al correo.'
-          : `IA demo · ${DELIVERY_ZONE_LABELS[zone]} · salida y regreso por Mercado Central`
+          ? 'Armá el lote de SH para llevar al correo.'
+          : `${DELIVERY_ZONE_LABELS[zone]} · salida y regreso por Mercado Central`
       }
       size="xl"
       footer={
@@ -210,8 +210,8 @@ export function RoutePlannerModal({
         <div className="rounded-[12px] border border-secondary/20 bg-secondary-light/50 p-4">
           <div className="flex flex-wrap items-end gap-3">
             <div className="flex items-center gap-2 text-sm font-semibold text-secondary">
-              <Bot className="h-5 w-5" />
-              Asistente IA (demo)
+              <Route className="h-5 w-5" />
+              Sugerencias automáticas
             </div>
             {!isCourier ? (
               <Input
@@ -240,8 +240,8 @@ export function RoutePlannerModal({
           ) : (
             <p className="mt-3 text-sm text-text-secondary">
               {isCourier
-                ? 'La IA selecciona los paquetes disponibles válidos para llevar al correo.'
-                : 'Indicá cuántas horas tenés (ej. 5 h) y la IA elige cuántos SH podés repartir en ese tiempo.'}
+                ? 'Incluye los paquetes disponibles válidos para llevar al correo.'
+                : 'Indicá cuántas horas tenés (ej. 5 h) y el sistema sugiere cuántos SH podés repartir en ese tiempo.'}
             </p>
           )}
         </div>
@@ -290,7 +290,7 @@ export function RoutePlannerModal({
               ))}
               {draftPackages.length === 0 ? (
                 <p className="p-3 text-sm text-text-secondary">
-                  Todavía no hay paquetes. Usá el asistente IA o agregá SH manualmente.
+                  Todavía no hay paquetes. Usá las sugerencias automáticas o agregá SH manualmente.
                 </p>
               ) : null}
             </div>
@@ -360,7 +360,7 @@ export function RoutePlannerModal({
         {routeStats.minutes > Number(hoursAvailable) * 60 && !isCourier ? (
           <Alert tone="warning" title="Tiempo excedido">
             La ruta actual (~{formatDuration(routeStats.minutes)}) supera las {hoursAvailable} h
-            indicadas. Quitá paquetes o volvé a sugerir con IA.
+            indicadas. Quitá paquetes o volvé a generar sugerencias.
           </Alert>
         ) : null}
 

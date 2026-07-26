@@ -37,10 +37,10 @@ export default function SettingsPage() {
 
   const title =
     action === 'restore'
-      ? 'Restaurar datos demo'
+      ? 'Restaurar datos iniciales'
       : action === 'clear'
-        ? 'Borrar datos locales'
-        : 'Recargar demo'
+        ? 'Borrar todos los datos'
+        : 'Recargar aplicación'
 
   if (loading) return <PageLoader label="Cargando configuración…" />
 
@@ -63,7 +63,7 @@ export default function SettingsPage() {
       <Card title="Versión">
         <p>Aplicación: {data?.info.appVersion ?? '…'}</p>
         <p>
-          Base local: v{data?.info.dbVersion ?? '…'} ·{' '}
+          Base de datos: v{data?.info.dbVersion ?? '…'} ·{' '}
           {data?.info.compatible ? 'Compatible' : 'Incompatible'}
         </p>
       </Card>
@@ -74,24 +74,14 @@ export default function SettingsPage() {
         ))}
       </div>
 
-      <Card title="Datos locales">
-        {data?.info.remoteDemo ? (
-          <p className="mb-3 text-sm text-text-secondary">
-            Modo <strong>demo compartida</strong>: paquetes, repartos e historial se guardan en la
-            nube. PC y celular ven los mismos datos. La sesión sigue siendo por dispositivo.
-          </p>
-        ) : (
-          <p className="mb-3 text-sm text-text-secondary">
-            Los datos se guardan en este navegador (localStorage).
-          </p>
-        )}
+      <Card title="Datos del sistema">
         <div className="flex flex-wrap gap-2">
-          <Button onClick={() => setAction('restore')}>Restaurar mocks</Button>
+          <Button onClick={() => setAction('restore')}>Restaurar datos iniciales</Button>
           <Button variant="danger" onClick={() => setAction('clear')}>
             Borrar datos
           </Button>
           <Button variant="outline" onClick={() => setAction('reload')}>
-            Recargar demo
+            Recargar
           </Button>
         </div>
       </Card>
@@ -101,7 +91,7 @@ export default function SettingsPage() {
         title={title}
         description={
           data?.info.remoteDemo
-            ? 'Esta acción modifica la base compartida de la demo (todos los dispositivos).'
+            ? 'Esta acción afecta los datos de todos los usuarios conectados.'
             : 'Esta acción modifica los datos guardados en este navegador.'
         }
         tone={action === 'clear' ? 'danger' : 'primary'}

@@ -660,7 +660,7 @@ export default function DeliveryFormPage() {
           </div>
           <Button variant="outline" onClick={() => setRoutePlannerOpen(true)}>
             <Route className="h-4 w-4" />
-            {channel === 'courier' ? 'Ver ruta al correo' : 'Planificador IA + mapa'}
+            {channel === 'courier' ? 'Ver ruta al correo' : 'Planificador de ruta'}
           </Button>
         </div>
 

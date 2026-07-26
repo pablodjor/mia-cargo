@@ -42,7 +42,7 @@ export default function DriverHomePage() {
 
       {active.length === 0 && deliveries.length === 0 ? (
         <Card>
-          <p className="text-sm text-text-secondary">No tenés repartos asignados en la demo.</p>
+          <p className="text-sm text-text-secondary">No tenés repartos asignados.</p>
         </Card>
       ) : null}
 

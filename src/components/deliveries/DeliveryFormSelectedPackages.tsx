@@ -110,7 +110,7 @@ export function DeliveryFormSelectedPackages({
         <PackagePlus className="mx-auto h-8 w-8 text-primary/60" />
         <p className="mt-2 text-sm font-medium text-text-primary">Todavía no hay paquetes en el reparto</p>
         <p className="mt-1 text-xs text-text-secondary">
-          Buscá abajo un SH disponible o usá el planificador IA para sugerirlos.
+          Buscá abajo un SH disponible o usá el planificador de ruta para sugerirlos.
         </p>
       </div>
     )

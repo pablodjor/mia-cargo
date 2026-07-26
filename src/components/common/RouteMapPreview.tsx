@@ -47,7 +47,7 @@ export function RouteMapPreview({ packages, courier, className }: RouteMapPrevie
 
       {!hasRoute ? (
         <div className="flex h-40 items-center justify-center p-6 text-center text-sm text-text-secondary">
-          Agregá paquetes o usá el asistente IA para ver el recorrido.
+          Agregá paquetes o usá el planificador de ruta para ver el recorrido.
         </div>
       ) : (
         <div className="space-y-3 p-3">

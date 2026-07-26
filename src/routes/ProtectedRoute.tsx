@@ -9,7 +9,7 @@ export function ProtectedRoute({ roles }: { roles?: UserRole[] }) {
   const location = useLocation()
 
   if (loading) {
-    return <PageLoader fullScreen label="Cargando demo…" />
+    return <PageLoader fullScreen label="Cargando…" />
   }
 
   if (!session) {

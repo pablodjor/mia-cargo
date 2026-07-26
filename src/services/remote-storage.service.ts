@@ -14,7 +14,7 @@ export function isRemoteDemoStorageEnabled(): boolean {
 export async function fetchRemoteDatabase(): Promise<RemoteDatabaseRecord | null> {
   const response = await fetch(API_PATH, { cache: 'no-store' })
   if (!response.ok) {
-    throw new Error('No se pudo cargar la base de demo')
+    throw new Error('No se pudieron cargar los datos')
   }
   const data = (await response.json()) as RemoteDatabaseRecord | null
   if (!data?.snapshot) return null
@@ -28,7 +28,7 @@ export async function pushRemoteDatabase(snapshot: DatabaseSnapshot): Promise<st
     body: JSON.stringify({ snapshot }),
   })
   if (!response.ok) {
-    throw new Error('No se pudo guardar la base de demo')
+    throw new Error('No se pudieron guardar los datos')
   }
   const body = (await response.json()) as { updatedAt?: string }
   return body.updatedAt ?? new Date().toISOString()

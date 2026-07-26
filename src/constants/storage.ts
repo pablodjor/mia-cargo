@@ -16,4 +16,4 @@ export const STORAGE_KEYS = {
   notificationsLastSeen: 'miacargo:notifications-last-seen',
 } as const
 
-export const APP_VERSION = '1.0.0-demo'
+export const APP_VERSION = '1.0.0'

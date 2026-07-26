@@ -50,9 +50,7 @@ export function ConfirmDialog({
     >
       {tone === 'warning' ? (
         <Alert tone="warning">{description}</Alert>
-      ) : (
-        <p className="text-sm text-text-secondary">Esta acción quedará registrada en el historial local.</p>
-      )}
+      ) : null}
     </Modal>
   )
 }

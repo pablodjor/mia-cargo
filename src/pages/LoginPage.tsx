@@ -12,7 +12,6 @@ import type { UserRole } from '@/types'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
-import { Alert } from '@/components/ui/Alert'
 
 export function LoginPage() {
   const { login, loginAsRole } = useAuth()
@@ -75,28 +74,17 @@ export function LoginPage() {
             con trazabilidad total
           </h1>
           <p className="mt-4 max-w-md text-white/70">
-            Demo interna para organizar paquetes, repartos, incidencias y entregas de última milla
-            en Argentina.
+            Paquetes, repartos, incidencias y entregas de última milla en un solo lugar.
           </p>
-          <div className="mt-8 text-sm text-white/60">
-            Frontend V1 · datos mock · persistencia local
-          </div>
         </div>
 
         <Card className="animate-slide-up border-0 shadow-2xl">
           <div className="mb-6">
-            <p className="text-xs font-semibold tracking-[0.2em] text-primary uppercase">Acceso demo</p>
-            <h2 className="mt-1 text-2xl font-bold text-text-primary">Iniciar sesión</h2>
-            <p className="mt-1 text-sm text-text-secondary">
-              Usá los accesos rápidos o las credenciales mock.
-            </p>
+            <h2 className="text-2xl font-bold text-text-primary">Iniciar sesión</h2>
+            <p className="mt-1 text-sm text-text-secondary">Ingresá con tu email y contraseña.</p>
           </div>
 
-          <Alert title="Credenciales de demostración" tone="info">
-            admin / operador / lector / chofer @miacargo.com.ar · contraseña <strong>demo123</strong>
-          </Alert>
-
-          <form className="mt-5 space-y-4" onSubmit={onSubmit}>
+          <form className="space-y-4" onSubmit={onSubmit}>
             <Input label="Email" type="email" error={errors.email?.message} {...register('email')} />
             <Input
               label="Contraseña"

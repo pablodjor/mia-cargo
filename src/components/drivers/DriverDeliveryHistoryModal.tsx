@@ -345,7 +345,7 @@ export function DriverDeliveryHistoryModal({
             empty={
               <p className="py-8 text-center text-sm text-text-secondary">
                 {allRows.length === 0
-                  ? 'Este chofer aún no tiene repartos registrados en la demo.'
+                  ? 'Este chofer aún no tiene repartos registrados.'
                   : 'No hay repartos que coincidan con la fecha o el estado seleccionados.'}
               </p>
             }

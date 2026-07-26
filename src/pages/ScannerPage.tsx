@@ -100,7 +100,7 @@ export default function ScannerPage() {
           </Button>
           {data?.packages.length ? (
             <div className="flex flex-wrap gap-2 text-sm">
-              <span className="w-full text-xs text-text-muted">Ejemplos de la demo:</span>
+              <span className="w-full text-xs text-text-muted">Códigos de ejemplo:</span>
               {data.packages.slice(0, 5).map((item) => (
                 <button
                   key={item.id}

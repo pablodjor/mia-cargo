@@ -20,7 +20,7 @@ export const settingsService = {
     await delay(100)
     storageService.seedIfNeeded()
     return {
-      appVersion: '1.0.0-demo',
+      appVersion: '1.0.0',
       dbVersion: storageService.getSnapshot().version,
       compatible: storageService.isCompatible(),
       remoteDemo: storageService.isRemoteDemo(),
