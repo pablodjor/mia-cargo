@@ -32,9 +32,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    refresh()
-    setLoading(false)
-  }, [refresh])
+    let active = true
+    void storageService.init().finally(() => {
+      if (!active) return
+      storageService.seedIfNeeded()
+      setSession(authService.getSessionSync())
+      setLoading(false)
+    })
+    return () => {
+      active = false
+    }
+  }, [])
 
   const value = useMemo<AuthContextValue>(
     () => ({

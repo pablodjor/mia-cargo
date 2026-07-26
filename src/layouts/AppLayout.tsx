@@ -2,6 +2,7 @@ import { LogOut, Menu, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { GlobalSearchModal } from '@/components/common/GlobalSearchModal'
+import { DemoRemoteBanner } from '@/components/common/DemoRemoteBanner'
 import { NotificationsPanel } from '@/components/common/NotificationsPanel'
 import { ThemeToggle } from '@/components/common/ThemeToggle'
 import { adminNavItems } from '@/constants/navigation'
@@ -92,6 +93,7 @@ export function AppLayout() {
       </Drawer>
 
       <div className={cn('transition-all duration-200', collapsed ? 'lg:pl-[92px]' : 'lg:pl-[280px]')}>
+        <DemoRemoteBanner />
         <header className="sticky top-0 z-20 border-b border-border bg-surface/95 backdrop-blur">
           <div className="flex items-center gap-3 px-4 py-3 lg:px-6">
             <IconButton label="Menú" className="lg:hidden" onClick={() => setMobileOpen(true)}>

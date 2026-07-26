@@ -4,6 +4,10 @@
 
 [build.environment]
   NODE_VERSION = "20"
+  VITE_DEMO_REMOTE_STORAGE = "true"
+
+[functions]
+  directory = "netlify/functions"
 
 [[redirects]]
   from = "/*"

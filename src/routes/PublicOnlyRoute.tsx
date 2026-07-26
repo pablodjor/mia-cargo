@@ -7,7 +7,7 @@ export function PublicOnlyRoute() {
   const { session, loading } = useAuth()
 
   if (loading) {
-    return <PageLoader fullScreen label="Iniciando sesión…" />
+    return <PageLoader fullScreen label="Cargando demo…" />
   }
 
   if (session) {

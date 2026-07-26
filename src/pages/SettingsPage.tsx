@@ -75,6 +75,16 @@ export default function SettingsPage() {
       </div>
 
       <Card title="Datos locales">
+        {data?.info.remoteDemo ? (
+          <p className="mb-3 text-sm text-text-secondary">
+            Modo <strong>demo compartida</strong>: paquetes, repartos e historial se guardan en la
+            nube. PC y celular ven los mismos datos. La sesión sigue siendo por dispositivo.
+          </p>
+        ) : (
+          <p className="mb-3 text-sm text-text-secondary">
+            Los datos se guardan en este navegador (localStorage).
+          </p>
+        )}
         <div className="flex flex-wrap gap-2">
           <Button onClick={() => setAction('restore')}>Restaurar mocks</Button>
           <Button variant="danger" onClick={() => setAction('clear')}>
@@ -89,7 +99,11 @@ export default function SettingsPage() {
       <ConfirmDialog
         open={action !== null}
         title={title}
-        description="Esta acción modifica los datos guardados en este navegador."
+        description={
+          data?.info.remoteDemo
+            ? 'Esta acción modifica la base compartida de la demo (todos los dispositivos).'
+            : 'Esta acción modifica los datos guardados en este navegador.'
+        }
         tone={action === 'clear' ? 'danger' : 'primary'}
         onCancel={() => setAction(null)}
         onConfirm={() => void execute()}

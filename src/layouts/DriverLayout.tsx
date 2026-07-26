@@ -1,6 +1,7 @@
 import { LogOut } from 'lucide-react'
 import { Outlet, useNavigate } from 'react-router-dom'
 import logo from '@/assets/miacargo-logo.svg'
+import { DemoRemoteBanner } from '@/components/common/DemoRemoteBanner'
 import { ThemeToggle } from '@/components/common/ThemeToggle'
 import { useAuth } from '@/contexts/AuthContext'
 import { formatDeliveryDateDisplay } from '@/utils/date'
@@ -40,6 +41,7 @@ export function DriverLayout() {
           </div>
         </div>
       </header>
+      <DemoRemoteBanner />
       <main className="mx-auto max-w-lg px-4 py-4">
         <Outlet />
       </main>

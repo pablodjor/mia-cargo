@@ -11,13 +11,19 @@ export const settingsService = {
     return storageService.getCounts()
   },
 
-  async getVersionInfo(): Promise<{ appVersion: string; dbVersion: number; compatible: boolean }> {
+  async getVersionInfo(): Promise<{
+    appVersion: string
+    dbVersion: number
+    compatible: boolean
+    remoteDemo: boolean
+  }> {
     await delay(100)
     storageService.seedIfNeeded()
     return {
       appVersion: '1.0.0-demo',
       dbVersion: storageService.getSnapshot().version,
       compatible: storageService.isCompatible(),
+      remoteDemo: storageService.isRemoteDemo(),
     }
   },
 
