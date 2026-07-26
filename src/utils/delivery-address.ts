@@ -1,0 +1,68 @@
+import type { DeliveryAddressOverride, DeliveryStop, Package } from '@/types'
+import { formatAddressLine, streetAddressWithUnit } from '@/utils/address-details'
+import { formatFullAddress } from '@/utils/maps'
+
+export function getStopAddressParts(
+  pkg: Package,
+  stop: DeliveryStop,
+): DeliveryAddressOverride {
+  if (stop.deliveryAddress) return stop.deliveryAddress
+  return {
+    address: pkg.address,
+    city: pkg.city,
+    province: pkg.province,
+    postalCode: pkg.postalCode,
+    unit: pkg.addressUnit,
+    bell: pkg.addressBell,
+    placeType: pkg.addressPlaceType,
+  }
+}
+
+export function formatStopAddress(pkg: Package, stop: DeliveryStop): string {
+  return formatAddressLine(getStopAddressParts(pkg, stop))
+}
+
+export function formatPackageAddress(pkg: Package): string {
+  return formatAddressLine({
+    address: pkg.address,
+    city: pkg.city,
+    province: pkg.province,
+    postalCode: pkg.postalCode,
+    unit: pkg.addressUnit,
+    bell: pkg.addressBell,
+    placeType: pkg.addressPlaceType,
+  })
+}
+
+export function formatStopMapsAddress(pkg: Package, stop: DeliveryStop): string {
+  const parts = getStopAddressParts(pkg, stop)
+  return formatFullAddress({
+    address: streetAddressWithUnit(parts.address, parts.unit),
+    city: parts.city,
+    province: parts.province,
+    postalCode: parts.postalCode,
+  })
+}
+
+export function hasAlternateDeliveryAddress(pkg: Package, stop: DeliveryStop): boolean {
+  if (!stop.deliveryAddress) return false
+  return formatPackageAddress(pkg).toLowerCase() !== formatStopAddress(pkg, stop).toLowerCase()
+}
+
+export function isCompleteDeliveryAddress(
+  value: Partial<DeliveryAddressOverride> | undefined,
+): value is DeliveryAddressOverride {
+  return Boolean(
+    value?.address?.trim() &&
+      value.city?.trim() &&
+      value.province?.trim() &&
+      value.postalCode?.trim(),
+  )
+}
+
+export const EMPTY_DELIVERY_ADDRESS: DeliveryAddressOverride = {
+  address: '',
+  city: '',
+  province: '',
+  postalCode: '',
+}
