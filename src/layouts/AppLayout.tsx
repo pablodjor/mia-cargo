@@ -116,9 +116,10 @@ export function AppLayout() {
                 </span>
               </button>
             </div>
-            <NotificationsPanel />
-            <ThemeToggle />
-            <DropdownMenu
+            <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+              <NotificationsPanel />
+              <ThemeToggle />
+              <DropdownMenu
               items={[
                 {
                   label: 'Design System',
@@ -154,6 +155,7 @@ export function AppLayout() {
                 </div>
               }
             />
+            </div>
           </div>
         </header>
         <main className="px-4 py-6 lg:px-6">
