@@ -102,6 +102,7 @@ export default function DriversPage() {
       email: '',
       status: 'active',
       habitualVehicleId: '',
+      password: '',
     },
   })
 
@@ -116,6 +117,7 @@ export default function DriversPage() {
             email: driver.email,
             status: driver.status,
             habitualVehicleId: driver.habitualVehicleId ?? '',
+            password: '',
           }
         : {
             name: '',
@@ -124,14 +126,22 @@ export default function DriversPage() {
             email: '',
             status: 'active',
             habitualVehicleId: '',
+            password: '',
           },
     )
   }
 
   const save = form.handleSubmit(async (values) => {
     try {
-      if (editing) await driversService.update(editing.id, values)
-      else await driversService.create(values)
+      if (editing) {
+        await driversService.update(editing.id, values)
+      } else {
+        if (!values.password || values.password.length < 4) {
+          toast.error('Definí una contraseña de al menos 4 caracteres para el acceso del chofer')
+          return
+        }
+        await driversService.create(values)
+      }
       toast.success('Chofer guardado')
       setEditing(undefined)
       reload()
@@ -228,6 +238,22 @@ export default function DriversPage() {
           <Input label="DNI" error={form.formState.errors.dni?.message} {...form.register('dni')} />
           <Input label="Teléfono" error={form.formState.errors.phone?.message} {...form.register('phone')} />
           <Input label="Email" error={form.formState.errors.email?.message} {...form.register('email')} />
+          <Input
+            label={editing ? 'Contraseña de acceso (opcional)' : 'Contraseña de acceso'}
+            type="password"
+            placeholder={editing ? 'Dejar vacío para no cambiar' : 'Mínimo 4 caracteres'}
+            error={form.formState.errors.password?.message}
+            {...form.register('password')}
+          />
+          {!editing ? (
+            <p className="-mt-1 text-xs text-text-muted">
+              El chofer ingresa a la app con este email y contraseña.
+            </p>
+          ) : (
+            <p className="-mt-1 text-xs text-text-muted">
+              Si el chofer todavía no puede ingresar, definí una contraseña acá para crear su acceso.
+            </p>
+          )}
           <Select
             label="Estado"
             options={[

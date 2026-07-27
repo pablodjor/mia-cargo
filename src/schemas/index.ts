@@ -92,6 +92,7 @@ export const driverSchema = z.object({
   email: z.string().email('Email inválido'),
   status: z.enum(['active', 'inactive']),
   habitualVehicleId: z.string().optional(),
+  password: z.string().optional(),
 })
 
 export type DriverFormValues = z.infer<typeof driverSchema>
