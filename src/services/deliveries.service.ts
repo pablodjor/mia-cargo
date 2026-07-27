@@ -152,7 +152,7 @@ export const deliveriesService = {
         (delivery) =>
           delivery.driverId === driverId &&
           delivery.date === date &&
-          delivery.status !== 'cancelled' &&
+          ACTIVE_DELIVERY_STATUSES.includes(delivery.status) &&
           delivery.id !== excludeDeliveryId,
       )
       .sort((a, b) => a.code.localeCompare(b.code))
