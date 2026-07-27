@@ -8,6 +8,7 @@ import { createId } from '@/utils/id'
 import { delay } from '@/utils/delay'
 import { calculatePackageTotals } from '@/utils/money'
 import { appendPackageFailedAttempt } from '@/utils/package-attempts'
+import { findDuplicatePersons } from '@/utils/person-duplicate'
 import {
   assertCourierPackagePayment,
   deskDeliveryMethodLabel,
@@ -15,6 +16,7 @@ import {
   isCourierPackage,
 } from '@/utils/payment-rules'
 import { historyService } from './history.service'
+import { personsService } from './persons.service'
 import { storageService } from './storage.service'
 
 /** Estados que se pueden meter en un reparto nuevo. */
@@ -48,6 +50,33 @@ function nextShCode(packages: Package[]): string {
   return `SH${max + 1}`
 }
 
+async function ensurePackagePersonLink(input: PackageInput): Promise<string | undefined> {
+  if (input.personId) return input.personId
+
+  const personData = {
+    name: input.ownerName,
+    phone: input.ownerPhone,
+    address: input.address,
+    city: input.city,
+    province: input.province,
+    postalCode: input.postalCode,
+    destinationType: input.destinationType,
+    addressUnit: input.addressUnit,
+    addressBell: input.addressBell,
+    addressPlaceType: input.addressPlaceType,
+  }
+
+  const existing = findDuplicatePersons(storageService.getPersons(), personData)[0]
+  if (existing) return existing.id
+
+  const created = await personsService.create({
+    ...personData,
+    status: 'active',
+    notes: input.notes,
+  })
+  return created.id
+}
+
 export const packagesService = {
   async getAll(): Promise<Package[]> {
     await delay()
@@ -76,9 +105,11 @@ export const packagesService = {
     await delay()
     storageService.seedIfNeeded()
     const packages = storageService.getPackages()
+    const personId = await ensurePackagePersonLink(input)
     const now = new Date().toISOString()
     const pkg: Package = {
       ...input,
+      personId,
       ...withTotals(input),
       id: createId('pkg'),
       shCode: input.shCode || nextShCode(packages),
@@ -119,10 +150,12 @@ export const packagesService = {
       usdRate: data.usdRate ?? current.usdRate,
       paymentStatus: data.paymentStatus ?? current.paymentStatus,
     }
+    const personId = await ensurePackagePersonLink(merged)
 
     const updated: Package = {
       ...current,
       ...data,
+      personId,
       ...withTotals(merged),
       id: current.id,
       updatedAt: new Date().toISOString(),

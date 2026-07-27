@@ -943,7 +943,8 @@ export default function PackagesPage() {
                 onChange={(event) => applyPerson(event.target.value)}
               />
               <p className="text-xs text-text-muted">
-                Elegí un cliente para completar automáticamente los datos del destinatario.
+                Elegí un cliente existente o completá manualmente: si no elegís uno, se crea
+                automáticamente en Clientes con los datos del destinatario.
               </p>
             </div>
           ) : null}
