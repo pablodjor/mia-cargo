@@ -17,6 +17,7 @@ import { Alert } from '@/components/ui/Alert'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { PageLoader } from '@/components/ui/PageLoader'
+import { LiveIndicator } from '@/components/ui/LiveIndicator'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Modal } from '@/components/ui/Modal'
 import { StatusBadge } from '@/components/ui/StatusBadge'
@@ -372,6 +373,7 @@ export default function DriverDeliveryPage() {
           disabled={!isToday}
           onClick={() => void handleStartDelivery()}
         >
+          <LiveIndicator tone="inverse" title="Iniciar reparto en vivo" />
           Iniciar reparto
         </Button>
       ) : null}

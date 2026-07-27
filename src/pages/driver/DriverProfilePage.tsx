@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom'
 import { Bike, Mail, Phone, Truck } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
@@ -29,10 +28,7 @@ export default function DriverProfilePage() {
   return (
     <div className="space-y-4">
       <div>
-        <Link className="text-sm text-primary" to="/driver">
-          ← Mis repartos
-        </Link>
-        <h1 className="mt-2 text-xl font-bold text-text-primary">Mi perfil</h1>
+        <h1 className="text-xl font-bold text-text-primary">Mi perfil</h1>
         <p className="mt-1 text-sm text-text-secondary">Datos de tu cuenta y unidad habitual.</p>
       </div>
 

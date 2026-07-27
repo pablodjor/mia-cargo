@@ -10,6 +10,7 @@ import { Alert } from '@/components/ui/Alert'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { PageLoader } from '@/components/ui/PageLoader'
+import { LiveIndicator } from '@/components/ui/LiveIndicator'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { DELIVERY_CHANNEL_LABELS } from '@/constants/labels'
 import { useAuth } from '@/contexts/AuthContext'
@@ -149,7 +150,12 @@ export default function DriverHomePage() {
               <Card key={delivery.id}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="font-semibold text-text-primary">{delivery.code}</p>
+                    <div className="flex items-center gap-2">
+                      {delivery.status === 'in_progress' ? (
+                        <LiveIndicator title="Reparto en curso" />
+                      ) : null}
+                      <p className="font-semibold text-text-primary">{delivery.code}</p>
+                    </div>
                     <p className="text-sm text-text-secondary">{formatDeliveryDateDisplay(delivery.date)}</p>
                     <p className="text-sm text-text-muted">
                       {courier
@@ -190,6 +196,7 @@ export default function DriverHomePage() {
                       disabled={!isToday}
                       onClick={() => void startDelivery(delivery)}
                     >
+                      <LiveIndicator tone="inverse" title="Iniciar reparto en vivo" />
                       Iniciar reparto
                     </Button>
                   ) : null}
@@ -198,7 +205,14 @@ export default function DriverHomePage() {
                       variant={canStart ? 'outline' : 'primary'}
                       onClick={() => navigate(`/driver/deliveries/${delivery.id}`)}
                     >
-                      {delivery.status === 'in_progress' ? 'Continuar entregas' : 'Ver reparto'}
+                      {delivery.status === 'in_progress' ? (
+                        <>
+                          <LiveIndicator tone={canStart ? 'primary' : 'inverse'} title="Reparto en curso" />
+                          Continuar entregas
+                        </>
+                      ) : (
+                        'Ver reparto'
+                      )}
                     </Button>
                   ) : (
                     <Button variant="outline" onClick={() => navigate(`/driver/deliveries/${delivery.id}`)}>

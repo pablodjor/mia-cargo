@@ -4,19 +4,23 @@ interface LiveIndicatorProps {
   title?: string
   className?: string
   size?: 'sm' | 'md'
+  tone?: 'primary' | 'inverse'
 }
 
 export function LiveIndicator({
   title = 'En curso',
   className,
   size = 'sm',
+  tone = 'primary',
 }: LiveIndicatorProps) {
   const dot = size === 'sm' ? 'h-2.5 w-2.5' : 'h-3 w-3'
+  const dotColor = tone === 'inverse' ? 'bg-white' : 'bg-primary'
+  const pingColor = tone === 'inverse' ? 'bg-white opacity-70' : 'bg-primary opacity-60'
 
   return (
     <span className={cn('relative flex shrink-0', dot, className)} title={title}>
-      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" />
-      <span className={cn('relative inline-flex rounded-full bg-primary', dot)} />
+      <span className={cn('absolute inline-flex h-full w-full animate-ping rounded-full', pingColor)} />
+      <span className={cn('relative inline-flex rounded-full', dotColor, dot)} />
     </span>
   )
 }
