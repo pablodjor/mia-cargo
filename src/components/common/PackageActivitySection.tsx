@@ -96,7 +96,7 @@ export function PackageActivitySection({ pkg, className }: PackageActivitySectio
                 {' · '}
                 <Link
                   to={`/deliveries/${deliveredBy.deliveryId}`}
-                  className="font-mono font-semibold text-primary hover:underline"
+                  className="font-mono font-semibold text-success hover:underline"
                 >
                   {deliveredBy.deliveryCode}
                 </Link>

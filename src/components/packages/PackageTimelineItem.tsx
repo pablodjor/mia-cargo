@@ -40,8 +40,8 @@ const KIND_META: Record<
   delivered: {
     icon: CheckCircle2,
     accent: 'text-success',
-    surface: 'bg-surface',
-    ring: 'ring-border',
+    surface: 'bg-success-light/80',
+    ring: 'ring-success/20',
   },
   failed: {
     icon: PackageX,
@@ -80,12 +80,6 @@ const OUTCOME_STYLE: Partial<
     icon: 'border-2 border-danger/25 bg-danger-light/80',
     subtitle: 'text-xs font-semibold text-danger',
     connector: 'bg-danger/25',
-  },
-  delivered: {
-    card: 'rounded-[12px] border border-border bg-surface p-3',
-    icon: 'border-2 border-border bg-surface',
-    subtitle: 'text-xs font-semibold text-success',
-    connector: 'bg-border',
   },
   rescheduled: {
     card: 'rounded-[12px] border border-warning/25 bg-warning-light/55 p-3',
@@ -156,7 +150,10 @@ export function PackageTimelineItem({
 
       <div className="mt-2 flex flex-wrap items-center gap-2">
         {event.deliveryCode ? (
-          <Badge tone="neutral" className="font-mono text-[11px]">
+          <Badge
+            tone={event.kind === 'delivered' ? 'success' : 'neutral'}
+            className="font-mono text-[11px]"
+          >
             {event.deliveryCode}
           </Badge>
         ) : null}
@@ -193,11 +190,23 @@ export function PackageTimelineItem({
     )
   }
 
+  const connectorClass =
+    event.kind === 'delivered'
+      ? 'bg-success/25'
+      : event.kind === 'failed'
+        ? 'bg-danger/25'
+        : event.kind === 'rescheduled'
+          ? 'bg-warning/25'
+          : 'bg-border'
+
   return (
     <li className="relative flex gap-3 pb-5 last:pb-0">
       {!isLast ? (
         <span
-          className="absolute top-10 left-[17px] h-[calc(100%-1.25rem)] w-px bg-border"
+          className={cn(
+            'absolute top-10 left-[17px] h-[calc(100%-1.25rem)] w-px',
+            connectorClass,
+          )}
           aria-hidden
         />
       ) : null}
