@@ -27,6 +27,24 @@ function normalizeEmail(email: string): string {
   return email.trim().toLowerCase()
 }
 
+function assertDriverLinkAvailable(driverId: string, exceptUserId?: string) {
+  const taken = storageService.getUsers().find(
+    (user) => user.role === 'driver' && user.driverId === driverId && user.id !== exceptUserId,
+  )
+  if (taken) {
+    throw new Error('Ese chofer ya tiene un usuario de acceso vinculado')
+  }
+}
+
+function assertDriverRoleInput(role: UserRole, driverId?: string) {
+  if (role !== 'driver') return
+  if (!driverId?.trim()) {
+    throw new Error('Seleccioná el chofer vinculado')
+  }
+  const driver = storageService.getDrivers().find((item) => item.id === driverId)
+  if (!driver) throw new Error('Chofer no encontrado')
+}
+
 export const usersService = {
   async getAll(): Promise<User[]> {
     await delay()
@@ -51,6 +69,10 @@ export const usersService = {
     if (!input.password || input.password.length < 4) {
       throw new Error('La contraseña debe tener al menos 4 caracteres')
     }
+    assertDriverRoleInput(input.role, input.driverId)
+    if (input.role === 'driver' && input.driverId) {
+      assertDriverLinkAvailable(input.driverId)
+    }
 
     const user: User = {
       id: createId('usr'),
@@ -59,7 +81,7 @@ export const usersService = {
       password: input.password,
       role: input.role,
       phone: input.phone?.trim() || undefined,
-      driverId: input.role === 'driver' ? input.driverId : undefined,
+      driverId: input.role === 'driver' ? input.driverId?.trim() : undefined,
       avatarInitials: toInitials(input.name),
       active: input.active,
     }
@@ -95,6 +117,13 @@ export const usersService = {
 
     const role = input.role ?? current.role
     const name = input.name?.trim() ?? current.name
+    const driverId =
+      role === 'driver' ? (input.driverId ?? current.driverId)?.trim() : undefined
+
+    assertDriverRoleInput(role, driverId)
+    if (role === 'driver' && driverId) {
+      assertDriverLinkAvailable(driverId, id)
+    }
 
     const updated: User = {
       ...current,
@@ -102,7 +131,7 @@ export const usersService = {
       email,
       role,
       phone: input.phone !== undefined ? input.phone.trim() || undefined : current.phone,
-      driverId: role === 'driver' ? input.driverId ?? current.driverId : undefined,
+      driverId,
       avatarInitials: toInitials(name),
       active: input.active ?? current.active,
       password: input.password && input.password.length > 0 ? input.password : current.password,

@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Pencil, Trash2, UserCheck, UserX } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { UsersListEmpty } from '@/components/common/list-empty-states'
@@ -67,6 +67,51 @@ export default function UsersPage() {
   })
 
   const selectedRole = form.watch('role')
+  const selectedDriverId = form.watch('driverId')
+
+  const driverById = useMemo(
+    () => new Map((data?.drivers ?? []).map((driver) => [driver.id, driver])),
+    [data?.drivers],
+  )
+
+  const linkedDriverIds = useMemo(
+    () =>
+      new Set(
+        (data?.users ?? [])
+          .filter((user) => user.role === 'driver' && user.driverId)
+          .map((user) => user.driverId as string),
+      ),
+    [data?.users],
+  )
+
+  const driverOptions = useMemo(
+    () =>
+      (data?.drivers ?? [])
+        .filter((driver) => {
+          if (editing?.driverId === driver.id) return true
+          return !linkedDriverIds.has(driver.id)
+        })
+        .map((driver) => ({
+          value: driver.id,
+          label: `${driver.name} · ${driver.email}`,
+        })),
+    [data?.drivers, linkedDriverIds, editing?.driverId],
+  )
+
+  useEffect(() => {
+    if (selectedRole !== 'driver') {
+      form.setValue('driverId', '')
+    }
+  }, [selectedRole, form])
+
+  useEffect(() => {
+    if (selectedRole !== 'driver' || !selectedDriverId || editing) return
+    const driver = driverById.get(selectedDriverId)
+    if (!driver) return
+    form.setValue('name', driver.name, { shouldDirty: true })
+    form.setValue('email', driver.email, { shouldDirty: true })
+    form.setValue('phone', driver.phone, { shouldDirty: true })
+  }, [selectedRole, selectedDriverId, driverById, editing, form])
 
   const open = (user?: User) => {
     setEditing(user ?? null)
@@ -139,7 +184,16 @@ export default function UsersPage() {
       key: 'role',
       header: 'Rol',
       sortable: true,
-      render: (user) => ROLE_LABELS[user.role],
+      render: (user) => (
+        <div>
+          <p>{ROLE_LABELS[user.role]}</p>
+          {user.role === 'driver' && user.driverId ? (
+            <p className="text-xs text-text-muted">
+              Chofer: {driverById.get(user.driverId)?.name ?? user.driverId}
+            </p>
+          ) : null}
+        </div>
+      ),
     },
     {
       key: 'phone',
@@ -229,15 +283,20 @@ export default function UsersPage() {
             {...form.register('role')}
           />
           {selectedRole === 'driver' && (
-            <Select
-              label="Chofer vinculado"
-              options={(data?.drivers ?? [])
-                .filter((driver) => driver.status === 'active')
-                .map((driver) => ({ value: driver.id, label: driver.name }))}
-              placeholder="Seleccionar chofer"
-              error={form.formState.errors.driverId?.message}
-              {...form.register('driverId')}
-            />
+            <>
+              <Select
+                label="Chofer vinculado"
+                options={driverOptions}
+                placeholder={
+                  driverOptions.length > 0 ? 'Seleccionar chofer' : 'No hay choferes disponibles'
+                }
+                error={form.formState.errors.driverId?.message}
+                {...form.register('driverId')}
+              />
+              <p className="-mt-1 text-xs text-text-muted">
+                Elegí el chofer operativo. La contraseña de arriba es la que usa para ingresar a la app.
+              </p>
+            </>
           )}
           <Input label="Teléfono" {...form.register('phone')} />
           <Select
