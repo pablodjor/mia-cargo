@@ -16,7 +16,7 @@ import { formatDateTime } from '@/utils/date'
 import { paymentChipClass } from '@/utils/payment-display'
 import { formatArs, formatUsd } from '@/utils/money'
 import { formatPackageAddress, formatPackageMapsAddress } from '@/utils/delivery-address'
-import { getPackageDeliveryAssignment } from '@/utils/package-delivery-info'
+import { getPackageDeliveryAssignment, packageHasActiveDeliveryAssignment } from '@/utils/package-delivery-info'
 import { buildGoogleMapsUrl } from '@/utils/maps'
 import { cn } from '@/utils/cn'
 
@@ -99,7 +99,9 @@ export function PackageDetailModal({ pkg, onClose, onEdit }: PackageDetailModalP
             <StatusBadge status={pkg.status} />
           </div>
 
-          {assignment ? <PackageDeliveryAssignmentAlert assignment={assignment} /> : null}
+          {assignment && packageHasActiveDeliveryAssignment(pkg) ? (
+            <PackageDeliveryAssignmentAlert assignment={assignment} />
+          ) : null}
 
           <div className="grid gap-4 sm:grid-cols-2">
             <DetailField label="Teléfono">
@@ -131,7 +133,7 @@ export function PackageDetailModal({ pkg, onClose, onEdit }: PackageDetailModalP
             ) : null}
             {pkg.notes ? <DetailField label="Observaciones">{pkg.notes}</DetailField> : null}
             {assignment ? (
-              <DetailField label="Reparto">
+              <DetailField label={pkg.status === 'delivered' ? 'Entregado en' : 'Reparto'}>
                 <Link
                   to={`/deliveries/${assignment.deliveryId}`}
                   className="font-mono font-semibold text-primary hover:underline"

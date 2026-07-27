@@ -21,15 +21,18 @@ export function formatAddressExtrasSummary(details: AddressExtrasValues): string
   if (details.placeType && details.placeType in ADDRESS_PLACE_TYPE_LABELS) {
     parts.push(ADDRESS_PLACE_TYPE_LABELS[details.placeType as AddressPlaceType])
   }
-  if (details.unit?.trim()) parts.push(`Depto/Piso ${details.unit.trim()}`)
+  if (details.unit?.trim()) parts.push(`Piso/Depto ${details.unit.trim()}`)
   if (details.bell?.trim()) parts.push(`Timbre ${details.bell.trim()}`)
   return parts.join(' · ')
 }
 
-export function streetAddressWithUnit(address: string, unit?: string): string {
+export function streetAddressWithUnit(address: string, unit?: string, bell?: string): string {
   const trimmedUnit = unit?.trim()
-  if (!trimmedUnit) return address
-  return `${address}, ${trimmedUnit}`
+  const trimmedBell = bell?.trim()
+  if (!trimmedUnit && !trimmedBell) return address
+  if (trimmedUnit && trimmedBell) return `${address}, ${trimmedUnit} "${trimmedBell}"`
+  if (trimmedUnit) return `${address}, ${trimmedUnit}`
+  return `${address}, "${trimmedBell}"`
 }
 
 export function formatAddressLine(parts: {
@@ -42,7 +45,7 @@ export function formatAddressLine(parts: {
   placeType?: AddressPlaceType | ''
 }): string {
   const segments = [
-    streetAddressWithUnit(parts.address, parts.unit),
+    streetAddressWithUnit(parts.address, parts.unit, parts.bell),
     parts.city,
     parts.province,
     parts.postalCode,
@@ -50,14 +53,8 @@ export function formatAddressLine(parts: {
   ].filter(Boolean)
 
   const base = segments.join(', ')
-  const extras = formatAddressExtrasSummary({
-    bell: parts.bell,
-    placeType: parts.placeType,
-  })
+  const extras = formatAddressExtrasSummary({ placeType: parts.placeType })
 
   if (!extras) return base
-  if (parts.bell?.trim() || parts.placeType) {
-    return `${base} (${extras})`
-  }
-  return base
+  return `${base} (${extras})`
 }

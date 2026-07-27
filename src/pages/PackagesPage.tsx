@@ -79,7 +79,7 @@ import {
   deliveryOptionsForPackageStatus,
   pickDefaultDeliveryId,
 } from '@/utils/package-delivery-assignment'
-import { buildPackageDeliveryAssignmentMap } from '@/utils/package-delivery-info'
+import { buildPackageDeliveryAssignmentMap, packageHasActiveDeliveryAssignment } from '@/utils/package-delivery-info'
 import { sortRows, toggleTableSort } from '@/utils/table-sort'
 import {
   packageStatusFlowKind,
@@ -957,7 +957,7 @@ export default function PackagesPage() {
         }
       >
         <form className="space-y-5" onSubmit={save}>
-          {editing && editingAssignment ? (
+          {editing && editingAssignment && packageHasActiveDeliveryAssignment(editing) ? (
             <PackageDeliveryAssignmentAlert assignment={editingAssignment} />
           ) : null}
 
@@ -1232,7 +1232,7 @@ export default function PackagesPage() {
           </Button>
         }
       >
-        {statusTargetAssignment ? (
+        {statusTargetAssignment && statusTarget && packageHasActiveDeliveryAssignment(statusTarget) ? (
           <PackageDeliveryAssignmentAlert assignment={statusTargetAssignment} />
         ) : null}
         <Select

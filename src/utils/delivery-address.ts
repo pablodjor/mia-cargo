@@ -36,7 +36,7 @@ export function formatPackageAddress(pkg: Package): string {
 
 export function formatPackageMapsAddress(pkg: Package): string {
   return formatMapsAddress({
-    address: streetAddressWithUnit(pkg.address, pkg.addressUnit),
+    address: streetAddressWithUnit(pkg.address, pkg.addressUnit, pkg.addressBell),
     city: pkg.city,
     province: pkg.province,
     postalCode: pkg.postalCode,
@@ -49,7 +49,7 @@ export function formatOverrideMapsAddress(
   destinationType?: Package['destinationType'],
 ): string {
   return formatMapsAddress({
-    address: streetAddressWithUnit(override.address, override.unit),
+    address: streetAddressWithUnit(override.address, override.unit, override.bell),
     city: override.city,
     province: override.province,
     postalCode: override.postalCode,
@@ -60,7 +60,7 @@ export function formatOverrideMapsAddress(
 export function formatStopMapsAddress(pkg: Package, stop: DeliveryStop): string {
   const parts = getStopAddressParts(pkg, stop)
   return formatMapsAddress({
-    address: streetAddressWithUnit(parts.address, parts.unit),
+    address: streetAddressWithUnit(parts.address, parts.unit, parts.bell),
     city: parts.city,
     province: parts.province,
     postalCode: parts.postalCode,

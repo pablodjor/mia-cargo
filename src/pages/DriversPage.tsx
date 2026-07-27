@@ -28,6 +28,10 @@ import { sortRows, toggleTableSort } from '@/utils/table-sort'
 
 const DEFAULT_SORT: TableSortState = { key: 'name', direction: 'asc' }
 
+function formatDriverContact(driver: { phone: string; email?: string }): string {
+  return driver.email?.trim() ? `${driver.phone} · ${driver.email}` : driver.phone
+}
+
 function getDriverSortValue(
   driver: Driver,
   key: string,
@@ -37,7 +41,7 @@ function getDriverSortValue(
     case 'name':
       return formatFullName(driver)
     case 'contact':
-      return `${driver.phone} ${driver.email}`
+      return formatDriverContact(driver)
     case 'status':
       return driver.status
     case 'count':
@@ -151,7 +155,7 @@ export default function DriversPage() {
       key: 'contact',
       header: 'Contacto',
       sortable: true,
-      render: (driver) => `${driver.phone} · ${driver.email}`,
+      render: (driver) => formatDriverContact(driver),
     },
     {
       key: 'status',

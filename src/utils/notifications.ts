@@ -34,12 +34,14 @@ const ACTION_META: Record<string, NotificationMeta> = {
   delivery_cancelled: { icon: XCircle, tone: 'danger' },
   delivery_draft: { icon: Route, tone: 'neutral' },
   user_created: { icon: UserPlus, tone: 'info' },
+  user_updated: { icon: UserPlus, tone: 'neutral' },
 }
 
 export function isNotificationEntry(entry: HistoryEntry): boolean {
   if (entry.action.startsWith('package_')) return true
   if (entry.action.startsWith('delivery_')) return true
   if (entry.action === 'user_created') return true
+  if (entry.action === 'user_updated') return true
   return false
 }
 

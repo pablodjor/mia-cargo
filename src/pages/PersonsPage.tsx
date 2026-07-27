@@ -337,7 +337,7 @@ export default function PersonsPage() {
 
         return (
           <div className="min-w-[280px] text-sm">
-            <p>{streetAddressWithUnit(person.address, person.addressUnit)}</p>
+            <p>{streetAddressWithUnit(person.address, person.addressUnit, person.addressBell)}</p>
             <p className="text-text-secondary">
               {person.city}, {person.province}
             </p>

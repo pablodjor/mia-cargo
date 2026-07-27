@@ -7,6 +7,14 @@ const DELIVERY_LINKED_STATUSES: PackageStatus[] = [
   'rescheduled',
 ]
 
+const ACTIVE_PACKAGE_DELIVERY_STATUSES = DELIVERY_LINKED_STATUSES
+
+/** Paquete con reparto activo (aún no entregado ni cancelado). */
+export function packageHasActiveDeliveryAssignment(pkg: Package): boolean {
+  return Boolean(pkg.deliveryId && ACTIVE_PACKAGE_DELIVERY_STATUSES.includes(pkg.status))
+}
+
+
 /** Paquetes en reparto deben tener deliveryId; retiro en depósito puede quedar entregado sin reparto. */
 export function normalizePackageDeliveryLink(pkg: Package): Package {
   if (!DELIVERY_LINKED_STATUSES.includes(pkg.status)) {

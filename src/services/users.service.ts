@@ -1,4 +1,5 @@
 import type { User, UserRole } from '@/types'
+import { ROLE_LABELS } from '@/constants/labels'
 import { createId } from '@/utils/id'
 import { delay } from '@/utils/delay'
 import { formatFullName, getNameInitials, normalizeUsername } from '@/utils/person-name'
@@ -33,6 +34,48 @@ function assertDriverRoleInput(role: UserRole, driverId?: string) {
   }
   const driver = storageService.getDrivers().find((item) => item.id === driverId)
   if (!driver) throw new Error('Chofer no encontrado')
+}
+
+function driverLabel(driverId?: string): string {
+  if (!driverId) return '—'
+  return storageService.getDrivers().find((item) => item.id === driverId)?.name ?? driverId
+}
+
+function describeUserChanges(
+  before: User,
+  after: User,
+  options?: { passwordChanged?: boolean },
+): string {
+  const changes: string[] = []
+
+  if (before.username !== after.username) {
+    changes.push(`usuario: ${before.username} → ${after.username}`)
+  }
+  if (before.firstName !== after.firstName || before.lastName !== after.lastName) {
+    changes.push(`nombre: ${before.name} → ${after.name}`)
+  }
+  if ((before.email ?? '') !== (after.email ?? '')) {
+    changes.push(`email: ${before.email ?? '—'} → ${after.email ?? '—'}`)
+  }
+  if (before.role !== after.role) {
+    changes.push(`rol: ${ROLE_LABELS[before.role]} → ${ROLE_LABELS[after.role]}`)
+  }
+  if ((before.phone ?? '') !== (after.phone ?? '')) {
+    changes.push(`teléfono: ${before.phone ?? '—'} → ${after.phone ?? '—'}`)
+  }
+  if ((before.driverId ?? '') !== (after.driverId ?? '')) {
+    changes.push(`chofer: ${driverLabel(before.driverId)} → ${driverLabel(after.driverId)}`)
+  }
+  if (before.active !== after.active) {
+    changes.push(
+      `estado: ${before.active ? 'Activo' : 'Inactivo'} → ${after.active ? 'Activo' : 'Inactivo'}`,
+    )
+  }
+  if (options?.passwordChanged) {
+    changes.push('contraseña actualizada')
+  }
+
+  return changes.length > 0 ? changes.join(' · ') : 'sin cambios en los datos'
 }
 
 export const usersService = {
@@ -138,12 +181,20 @@ export const usersService = {
 
     users[index] = updated
     storageService.setUsers(users)
+    const changes = describeUserChanges(current, updated, {
+      passwordChanged: Boolean(input.password && input.password.length > 0),
+    })
     historyService.record({
       action: 'user_updated',
       entity: 'user',
       entityId: updated.id,
       relatedCode: updated.username,
-      description: `Usuario ${updated.name} actualizado`,
+      previousStatus: current.active ? 'active' : 'inactive',
+      newStatus: updated.active ? 'active' : 'inactive',
+      description:
+        changes === 'sin cambios en los datos'
+          ? `Usuario ${updated.username} actualizado`
+          : `Usuario ${updated.username}: ${changes}`,
     })
     return updated
   },
