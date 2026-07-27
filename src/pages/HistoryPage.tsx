@@ -1,6 +1,8 @@
 import { ArrowRight, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { HistoryListEmpty, HistoryPackageEventsEmpty } from '@/components/common/list-empty-states'
+import { PackageShCodeButton } from '@/components/common/PackageShCodeButton'
 import { Alert } from '@/components/ui/Alert'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -93,14 +95,21 @@ export default function HistoryPage() {
   const entityId = searchParams.get('entityId') ?? ''
   const { data, loading } = useAsyncData(
     async () => {
-      const history = await historyService.getAll()
-      const pkg = entityId ? await packagesService.getById(entityId) : null
-      return { history, pkg }
+      const [history, packages, pkg] = await Promise.all([
+        historyService.getAll(),
+        packagesService.getAll(),
+        entityId ? packagesService.getById(entityId) : Promise.resolve(null),
+      ])
+      return { history, packages, pkg }
     },
     [entityId],
   )
   const history = data?.history ?? []
   const filteredPackage = data?.pkg ?? null
+  const packageById = useMemo(
+    () => new Map((data?.packages ?? []).map((item) => [item.id, item])),
+    [data?.packages],
+  )
   const [entity, setEntity] = useState('')
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<TableSortState>(DEFAULT_SORT)
@@ -156,12 +165,17 @@ export default function HistoryPage() {
       key: 'code',
       header: 'Código',
       sortable: true,
-      render: (h) =>
-        h.relatedCode ? (
+      render: (h) => {
+        if (h.entity === 'package') {
+          const pkg = packageById.get(h.entityId)
+          if (pkg) return <PackageShCodeButton pkg={pkg} />
+        }
+        return h.relatedCode ? (
           <span className="font-mono text-sm font-semibold">{h.relatedCode}</span>
         ) : (
           <span className="text-text-muted">—</span>
-        ),
+        )
+      },
     },
     {
       key: 'description',
@@ -237,11 +251,7 @@ export default function HistoryPage() {
         rowKey={(h) => h.id}
         sort={sort}
         onSort={handleSort}
-        empty={
-          <p className="py-8 text-center text-sm text-text-secondary">
-            {entityId ? 'Este paquete aún no tiene eventos registrados.' : 'No hay registros.'}
-          </p>
-        }
+        empty={entityId ? <HistoryPackageEventsEmpty /> : <HistoryListEmpty />}
       />
       <Pagination {...pager} onPageChange={pager.setPage} />
     </div>

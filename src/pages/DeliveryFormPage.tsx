@@ -100,6 +100,17 @@ export default function DeliveryFormPage() {
   })
 
   useEffect(() => {
+    if (id || !data?.packages) return
+    const presetPackageId = searchParams.get('package')
+    if (!presetPackageId) return
+    const check = packagesService.canAddToDelivery(presetPackageId)
+    if (!check.ok) return
+    const current = form.getValues('packageIds')
+    if (current.includes(presetPackageId)) return
+    form.setValue('packageIds', [...current, presetPackageId], { shouldDirty: true })
+  }, [id, data?.packages, searchParams, form])
+
+  useEffect(() => {
     if (!data?.delivery) return
     setStops(data.delivery.stops)
     const isNewDelivery = deliveryIdRef.current !== data.delivery.id

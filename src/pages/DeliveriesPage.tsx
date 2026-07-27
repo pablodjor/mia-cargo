@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Route, Eye, Download, Pencil, Copy, Ban } from 'lucide-react'
 import { toast } from 'sonner'
 import { DatePeriodFilter, datePeriodFilterLabel } from '@/components/common/DatePeriodFilter'
+import { DeliveriesListEmpty } from '@/components/common/list-empty-states'
 import { TableRowMenu } from '@/components/common/TableActions'
 import { LiveIndicator } from '@/components/ui/LiveIndicator'
 import { DeliveryZoneBadge } from '@/components/common/DeliveryZoneBadge'
@@ -467,11 +468,9 @@ export default function DeliveriesPage() {
           d.status === 'in_progress' ? 'bg-primary-light/35 hover:bg-primary-light/55' : undefined
         }
         empty={
-          <p>
-            {dateFilter
-              ? `No hay repartos para ${formatDeliveryDateDisplay(dateFilter)}.`
-              : 'No hay repartos.'}
-          </p>
+          <DeliveriesListEmpty
+            dateLabel={dateFilter ? formatDeliveryDateDisplay(dateFilter) : undefined}
+          />
         }
       />
       <ConfirmDialog

@@ -46,8 +46,10 @@ export default function SettingsPage() {
     counts: await settingsService.getCounts(),
   }))
   const [action, setAction] = useState<Action>(null)
+  const [saving, setSaving] = useState(false)
 
   const execute = async () => {
+    setSaving(true)
     try {
       if (action === 'empty' || action === 'full' || action === 'minimal') {
         await settingsService.applyMockPreset(action)
@@ -58,6 +60,7 @@ export default function SettingsPage() {
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'No se pudo actualizar')
     } finally {
+      setSaving(false)
       setAction(null)
       reload()
     }
@@ -137,7 +140,11 @@ export default function SettingsPage() {
         title={title}
         description={description}
         tone={action === 'clear' ? 'danger' : 'primary'}
-        onCancel={() => setAction(null)}
+        loading={saving}
+        onCancel={() => {
+          if (saving) return
+          setAction(null)
+        }}
         onConfirm={() => void execute()}
       />
     </div>

@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { DriverDeliveryHistoryModal } from '@/components/drivers/DriverDeliveryHistoryModal'
+import { DriversListEmpty } from '@/components/common/list-empty-states'
 import { TableRowMenu } from '@/components/common/TableActions'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -203,7 +204,7 @@ export default function DriversPage() {
         rowKey={(driver) => driver.id}
         sort={sort}
         onSort={handleSort}
-        empty={<p>No hay choferes.</p>}
+        empty={<DriversListEmpty />}
       />
 
       <DriverDeliveryHistoryModal

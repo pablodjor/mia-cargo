@@ -58,7 +58,8 @@ function AppRoutes() {
                 <Route path="/scanner" element={<ScannerPage />} />
                 <Route path="/packages" element={<PackagesPage />} />
                 <Route path="/payments" element={<PaymentsPage />} />
-                <Route path="/persons" element={<PersonsPage />} />
+                <Route path="/clientes" element={<PersonsPage />} />
+                <Route path="/persons" element={<Navigate to="/clientes" replace />} />
                 <Route path="/deliveries" element={<DeliveriesPage />} />
                 <Route path="/deliveries/calendar" element={<DeliveriesCalendarPage />} />
                 <Route path="/deliveries/new" element={<DeliveryFormPage />} />

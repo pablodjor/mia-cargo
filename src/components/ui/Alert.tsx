@@ -6,6 +6,7 @@ interface AlertProps {
   title?: string
   children?: ReactNode
   tone?: 'info' | 'success' | 'warning' | 'danger'
+  className?: string
 }
 
 const config = {
@@ -15,10 +16,10 @@ const config = {
   danger: { icon: AlertCircle, className: 'border-danger/20 bg-danger-light text-danger' },
 }
 
-export function Alert({ title, children, tone = 'info' }: AlertProps) {
-  const { icon: Icon, className } = config[tone]
+export function Alert({ title, children, tone = 'info', className }: AlertProps) {
+  const { icon: Icon, className: toneClassName } = config[tone]
   return (
-    <div className={cn('flex gap-3 rounded-[12px] border px-4 py-3', className)}>
+    <div className={cn('flex gap-3 rounded-[12px] border px-4 py-3', toneClassName, className)}>
       <Icon className="mt-0.5 h-4 w-4 shrink-0" />
       <div>
         {title ? <p className="text-sm font-semibold">{title}</p> : null}

@@ -20,7 +20,7 @@ const titles: Record<string, string> = {
   '/scanner': 'Buscar paquete',
   '/packages': 'Paquetes',
   '/payments': 'Cobranzas',
-  '/persons': 'Clientes',
+  '/clientes': 'Clientes',
   '/deliveries/calendar': 'Calendario de repartos',
   '/deliveries': 'Repartos',
   '/incidents': 'Incidencias',

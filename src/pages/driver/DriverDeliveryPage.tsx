@@ -13,6 +13,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
+import { Alert } from '@/components/ui/Alert'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { PageLoader } from '@/components/ui/PageLoader'
@@ -21,6 +22,7 @@ import { Modal } from '@/components/ui/Modal'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Textarea } from '@/components/ui/Textarea'
 import { DRIVER_DEFAULT_FAILURE_REASON_ID } from '@/constants/driver-observations'
+import { PackageShCodeButton } from '@/components/common/PackageShCodeButton'
 import {
   PackagePaymentInfo,
   PaymentSummaryPanel,
@@ -31,6 +33,7 @@ import { DownloadDeliveryReportButton } from '@/components/deliveries/DownloadDe
 import { DriverPaymentConfirmModal } from '@/components/driver/DriverPaymentConfirmModal'
 import { PredefinedObservationBadges } from '@/components/driver/PredefinedObservationBadges'
 import { PackageDeliveryNote } from '@/components/driver/PackageDeliveryNote'
+import { PackageDeliveryAttemptsList } from '@/components/packages/PackageDeliveryAttemptsList'
 import { DELIVERY_CHANNEL_LABELS } from '@/constants/labels'
 import { useAuth } from '@/contexts/AuthContext'
 import { useAsyncData } from '@/hooks/useAsyncData'
@@ -42,7 +45,7 @@ import { packagesService } from '@/services/packages.service'
 import { settingsService } from '@/services/settings.service'
 import { vehiclesService } from '@/services/vehicles.service'
 import type { DeliveryStop, Package as CargoPackage, PaymentStatus } from '@/types'
-import { addDaysISODate, formatDateTime, formatDeliveryDateDisplay } from '@/utils/date'
+import { addDaysISODate, formatDateTime, formatDeliveryDateDisplay, isDeliveryScheduledForToday } from '@/utils/date'
 import { formatArs } from '@/utils/money'
 import { buildGoogleMapsRouteUrl, buildGoogleMapsUrl, formatFullAddress } from '@/utils/maps'
 import { formatStopAddress, formatPackageAddress, hasAlternateDeliveryAddress } from '@/utils/delivery-address'
@@ -67,6 +70,9 @@ export default function DriverDeliveryPage() {
   const [rescheduleOpen, setRescheduleOpen] = useState(false)
   const [paymentConfirmOpen, setPaymentConfirmOpen] = useState(false)
   const [deliveryConfirmOpen, setDeliveryConfirmOpen] = useState(false)
+  const [completeOpen, setCompleteOpen] = useState(false)
+  const [completing, setCompleting] = useState(false)
+  const [starting, setStarting] = useState(false)
   const [activePackageId, setActivePackageId] = useState<string | null>(null)
   const [confirmPayment, setConfirmPayment] = useState<PaymentStatus>('paid')
   const tomorrowISO = addDaysISODate(1)
@@ -104,6 +110,10 @@ export default function DriverDeliveryPage() {
 
   const delivery = data.delivery
   const progress = deliveriesService.getProgress(delivery)
+  const isActive = delivery.status === 'in_progress'
+  const canStart = delivery.status === 'draft' || delivery.status === 'prepared'
+  const isToday = isDeliveryScheduledForToday(delivery.date)
+  const vehicle = data.vehicles.find((item) => item.id === delivery.vehicleId)
   const packageById = new Map(data.packages.map((item) => [item.id, item]))
   const isCourier = delivery.channel === 'courier'
   const courier =
@@ -112,9 +122,20 @@ export default function DriverDeliveryPage() {
       : undefined
   const courierAddress = courier ? formatFullAddress(courier) : ''
 
+  const stopStatusOrder: Record<DeliveryStop['status'], number> = {
+    pending: 0,
+    not_delivered: 1,
+    delivered: 2,
+    skipped: 3,
+  }
+
   const stops: StopView[] = delivery.stops
     .slice()
-    .sort((a, b) => a.order - b.order)
+    .sort((a, b) => {
+      const statusDiff = stopStatusOrder[a.status] - stopStatusOrder[b.status]
+      if (statusDiff !== 0) return statusDiff
+      return a.order - b.order
+    })
     .flatMap((stop) => {
       const pkg = packageById.get(stop.packageId)
       return pkg ? [{ stop, pkg }] : []
@@ -131,6 +152,39 @@ export default function DriverDeliveryPage() {
   const mapsTarget = isCourier ? courierAddress : null
   const cashToCollect = sumCashToCollect(pendingStops.map((item) => item.pkg))
   const paymentOptions = driverDeliveryPaymentOptions(delivery.channel)
+
+  const canCompleteDelivery =
+    delivery.status === 'in_progress' && progress.pending === 0 && delivery.stops.length > 0
+
+  const handleCompleteDelivery = async () => {
+    setCompleting(true)
+    try {
+      await deliveriesService.setStatus(id, 'completed')
+      toast.success(`Reparto ${delivery.code} completado`)
+      setCompleteOpen(false)
+      reload()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'No se pudo completar el reparto')
+    } finally {
+      setCompleting(false)
+    }
+  }
+
+  const handleStartDelivery = async () => {
+    setStarting(true)
+    try {
+      const confirmed = await guardDeliveryDayAction(delivery.date, async () => {
+        await deliveriesService.setStatus(id, 'in_progress')
+        toast.success(`Reparto ${delivery.code} iniciado`)
+        reload()
+      })
+      if (!confirmed) return
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'No se pudo iniciar el reparto')
+    } finally {
+      setStarting(false)
+    }
+  }
 
   const openFullRoute = () => {
     if (isCourier) {
@@ -274,18 +328,53 @@ export default function DriverDeliveryPage() {
           ← Mis repartos
         </Link>
         <h1 className="mt-2 text-xl font-bold text-text-primary">{delivery.code}</h1>
-        <p className="mt-1 text-sm font-semibold text-primary">
+        <div className="mt-2">
+          <StatusBadge status={delivery.status} type="delivery" />
+        </div>
+        <p className="mt-2 text-sm font-semibold text-primary">
           Fecha del reparto: {formatDeliveryDateDisplay(delivery.date)}
         </p>
         <p className="text-sm text-text-secondary">
           {DELIVERY_CHANNEL_LABELS[delivery.channel]}
           {courier ? ` · ${courier.name}` : null}
+          {vehicle ? ` · ${vehicle.plate}` : null}
         </p>
-        <p className="text-sm text-text-secondary">
+        {delivery.notes ? (
+          <p className="mt-2 rounded-[10px] border border-border bg-background px-3 py-2 text-sm text-text-secondary">
+            {delivery.notes}
+          </p>
+        ) : null}
+        <p className="mt-2 text-sm text-text-secondary">
           {progress.delivered} entregados · {progress.notDelivered} no entregados · {progress.pending}{' '}
           pendientes
         </p>
       </div>
+
+      {!isActive ? (
+        <Alert tone={delivery.status === 'completed' ? 'success' : 'info'} className="mt-1">
+          {delivery.status === 'completed'
+            ? 'Reparto finalizado. Podés revisar el detalle de cada parada y descargar el reporte.'
+            : delivery.status === 'cancelled'
+              ? 'Este reparto fue cancelado. Solo podés consultar la información.'
+              : canStart
+                ? isToday
+                  ? 'Este reparto todavía no está en curso. Inicialo para registrar entregas.'
+                  : `Este reparto es del ${formatDeliveryDateDisplay(delivery.date)}. Podés ver el detalle, pero solo iniciarlo ese día.`
+                : 'Este reparto no está en curso. Solo podés consultar el detalle.'}
+        </Alert>
+      ) : null}
+
+      {canStart ? (
+        <Button
+          size="lg"
+          className="w-full"
+          loading={starting}
+          disabled={!isToday}
+          onClick={() => void handleStartDelivery()}
+        >
+          Iniciar reparto
+        </Button>
+      ) : null}
 
       <Card>
         <div className="mb-2 flex items-center justify-between text-sm">
@@ -313,6 +402,23 @@ export default function DriverDeliveryPage() {
           </p>
         )}
       </Card>
+
+      {delivery.status === 'in_progress' ? (
+        <Button
+          size="lg"
+          className="w-full"
+          disabled={progress.pending > 0}
+          onClick={() => setCompleteOpen(true)}
+        >
+          <CheckCircle2 className="h-5 w-5" />
+          Completar reparto
+        </Button>
+      ) : null}
+      {delivery.status === 'in_progress' && progress.pending > 0 ? (
+        <p className="text-center text-xs text-text-muted">
+          Completá o registrá todas las paradas para finalizar el reparto.
+        </p>
+      ) : null}
 
       {canDownloadDeliveryReport(delivery) ? (
         <DownloadDeliveryReportButton
@@ -353,8 +459,14 @@ export default function DriverDeliveryPage() {
           {isCourier ? `Paquetes (${stops.length})` : `Todas las paradas (${stops.length})`}
         </h2>
         {pendingStops.length > 0 ? (
-          <p className="mb-2 text-xs text-text-muted">Tocá un paquete pendiente para ver las acciones.</p>
-        ) : null}
+          <p className="mb-2 text-xs text-text-muted">
+            {isActive
+              ? 'Primero las pendientes. Tocá una para registrar la entrega.'
+              : 'Paradas pendientes del reparto.'}
+          </p>
+        ) : (
+          <p className="mb-2 text-xs text-text-muted">Todas las paradas fueron registradas.</p>
+        )}
         <div className="space-y-2">
           {stops.map(({ stop, pkg }) => {
             const isNext = nextStop?.pkg.id === pkg.id
@@ -378,9 +490,9 @@ export default function DriverDeliveryPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    if (isPending) setActivePackageId(pkg.id)
+                    if (isPending && isActive) setActivePackageId(pkg.id)
                   }}
-                  className="w-full p-3 text-left"
+                  className={cn('w-full p-3 text-left', isPending && isActive && 'cursor-pointer')}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
@@ -395,7 +507,7 @@ export default function DriverDeliveryPage() {
                         ) : null}
                         <StatusBadge status={stop.status} type="stop" />
                       </div>
-                      <p className="mt-2 font-mono text-sm font-semibold tracking-wide">{pkg.shCode}</p>
+                      <PackageShCodeButton pkg={pkg} className="mt-2" />
                       <p className="font-semibold text-text-primary">{pkg.ownerName}</p>
                       <p className="mt-1 flex items-start gap-1.5 text-sm text-text-secondary">
                         <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
@@ -435,7 +547,7 @@ export default function DriverDeliveryPage() {
                   </div>
                 </button>
 
-                {isSelected && isPending ? (
+                {isSelected && isPending && isActive ? (
                   <div className="space-y-4 border-t border-primary/15 bg-primary-light/25 p-3">
                     <div className="space-y-2 text-sm">
                       <p className="flex items-center gap-2 text-text-secondary">
@@ -487,15 +599,28 @@ export default function DriverDeliveryPage() {
                     </div>
                   </div>
                 ) : null}
+
+                {stop.status === 'not_delivered' ? (
+                  <div className="border-t border-border/70 px-3 py-3">
+                    <PackageDeliveryAttemptsList pkg={pkg} title="Intentos de entrega" />
+                  </div>
+                ) : null}
               </div>
             )
           })}
         </div>
       </div>
 
-      {pendingStops.length === 0 ? (
-        <Card title="Reparto completo">
-          <p className="text-sm text-text-secondary">No quedan paradas pendientes en este reparto.</p>
+      {pendingStops.length === 0 && delivery.stops.length > 0 ? (
+        <Card title="Todas las paradas registradas">
+          <p className="text-sm text-text-secondary">
+            Ya procesaste todos los paquetes de este reparto.
+            {canCompleteDelivery
+              ? ' Podés completarlo cuando estés listo.'
+              : delivery.status === 'completed'
+                ? ' El reparto ya está finalizado.'
+                : null}
+          </p>
           {(isCourier ? Boolean(courierAddress) : allAddresses.length > 0) ? (
             <Button className="mt-3 w-full" variant="outline" onClick={openFullRoute}>
               {isCourier ? 'Ver sucursal en Maps' : 'Ver ruta ida y vuelta'}
@@ -513,6 +638,16 @@ export default function DriverDeliveryPage() {
         selectedPayment={confirmPayment}
         onSelectPayment={setConfirmPayment}
         onConfirm={() => void mark('delivered', undefined, confirmPayment)}
+      />
+
+      <ConfirmDialog
+        open={completeOpen}
+        title="¿Completar reparto?"
+        description={`Confirmás que terminaste todas las paradas de ${delivery.code}. Después no vas a poder registrar más entregas en este reparto.`}
+        confirmLabel="Sí, completar reparto"
+        loading={completing}
+        onCancel={() => setCompleteOpen(false)}
+        onConfirm={() => void handleCompleteDelivery()}
       />
 
       <ConfirmDialog

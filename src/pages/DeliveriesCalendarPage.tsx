@@ -2,6 +2,7 @@ import { ExternalLink, Pencil, Route } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { DriverBadge } from '@/components/common/DriverBadge'
+import { PackageShCodeButton } from '@/components/common/PackageShCodeButton'
 import { BackLink } from '@/components/common/BackLink'
 import {
   DeliveryCalendar,
@@ -270,9 +271,7 @@ export default function DeliveriesCalendarPage() {
                       const pkg = packageById.get(stop.packageId)
                       return (
                         <li key={stop.packageId} className="flex items-center justify-between gap-2 text-xs">
-                          <span className="font-mono font-semibold text-text-primary">
-                            {pkg?.shCode ?? stop.packageId}
-                          </span>
+                          <PackageShCodeButton pkg={pkg} packageId={stop.packageId} />
                           <StatusBadge status={stop.status} type="stop" />
                         </li>
                       )

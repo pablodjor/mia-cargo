@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom'
 import {
-  Route,
   PackageCheck,
   PackageX,
   RefreshCw,
@@ -10,6 +9,7 @@ import {
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { DeliveryZoneBadge } from '@/components/common/DeliveryZoneBadge'
+import { ActiveDeliveriesEmpty } from '@/components/common/list-empty-states'
 import { DatePeriodFilter } from '@/components/common/DatePeriodFilter'
 import { DriverBadge } from '@/components/common/DriverBadge'
 import { Card } from '@/components/ui/Card'
@@ -258,11 +258,7 @@ export default function DashboardPage() {
               ))}
             </ul>
           ) : (
-            <div className="flex flex-col items-center rounded-[12px] border border-dashed border-border py-10 text-center">
-              <Route className="h-8 w-8 text-text-muted/50" />
-              <p className="mt-2 text-sm font-medium text-text-secondary">No hay repartos en curso</p>
-              <p className="mt-1 text-xs text-text-muted">Cuando un chofer salga a repartir, aparecerá acá.</p>
-            </div>
+            <ActiveDeliveriesEmpty />
           )}
         </Card>
 

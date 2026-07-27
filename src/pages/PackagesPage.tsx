@@ -23,6 +23,8 @@ import { Alert } from '@/components/ui/Alert'
 import { Button } from '@/components/ui/Button'
 import { Checkbox } from '@/components/ui/Checkbox'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
+import { PackagesListEmpty } from '@/components/common/list-empty-states'
+import { PackageShCodeButton } from '@/components/common/PackageShCodeButton'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import { PageLoader } from '@/components/ui/PageLoader'
@@ -766,7 +768,7 @@ export default function PackagesPage() {
       key: 'code',
       header: 'Código',
       sortable: true,
-      render: (p) => <strong className="font-mono">{p.shCode}</strong>,
+      render: (p) => <PackageShCodeButton pkg={p} />,
     },
     { key: 'owner', header: 'Destinatario', sortable: true, render: (p) => p.ownerName },
     {
@@ -905,7 +907,7 @@ export default function PackagesPage() {
         rowKey={(p) => p.id}
         sort={sort}
         onSort={handleSort}
-        empty={<p>No hay paquetes.</p>}
+        empty={<PackagesListEmpty />}
       />
       <Pagination {...pager} onPageChange={pager.setPage} />
 

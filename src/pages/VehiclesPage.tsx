@@ -3,6 +3,7 @@ import { Pencil, Power } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
+import { VehiclesListEmpty } from '@/components/common/list-empty-states'
 import { TableRowMenu } from '@/components/common/TableActions'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -138,7 +139,7 @@ export default function VehiclesPage() {
         rowKey={(v) => v.id}
         sort={sort}
         onSort={handleSort}
-        empty={<p>No hay vehículos.</p>}
+        empty={<VehiclesListEmpty />}
       />
       <Modal
         open={editing !== undefined}

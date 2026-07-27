@@ -2,8 +2,9 @@ import { ChevronDown, ChevronUp, GripVertical, PackagePlus, Trash2 } from 'lucid
 import { useState } from 'react'
 import { DeliveryStopAddressFields } from '@/components/deliveries/DeliveryStopAddressFields'
 import { DeliveryStopAdminActions } from '@/components/deliveries/DeliveryStopAdminActions'
-import { DeliveryStopFailureSummary } from '@/components/deliveries/DeliveryStopFailureSummary'
+import { PackageDeliveryAttemptsList } from '@/components/packages/PackageDeliveryAttemptsList'
 import { DestinationBadge } from '@/components/common/DestinationBadge'
+import { PackageShCodeButton } from '@/components/common/PackageShCodeButton'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { StatusBadge } from '@/components/ui/StatusBadge'
@@ -213,7 +214,7 @@ export function DeliveryFormSelectedPackages({
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="text-sm font-medium">
-                    <span className="font-mono font-semibold text-primary">{item.shCode}</span>
+                    <PackageShCodeButton pkg={item} className="text-sm" />
                     <span className="text-text-muted"> · </span>
                     {item.ownerName}
                     <span className="text-text-muted"> · {item.weight} kg</span>
@@ -258,7 +259,7 @@ export function DeliveryFormSelectedPackages({
 
             {isFailed && stop ? (
               <div className={cn('mt-3', sortable ? 'pl-14' : 'pl-10')}>
-                <DeliveryStopFailureSummary notes={item.failureNotes} attemptedAt={stop.attemptedAt} />
+                <PackageDeliveryAttemptsList pkg={item} title="Intentos de entrega" />
               </div>
             ) : null}
 

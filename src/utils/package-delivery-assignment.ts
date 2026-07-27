@@ -85,6 +85,30 @@ export function deliveryRouteOutcomeOptionsForPackage(
   })
 }
 
+/** Repartos válidos al reprogramar desde incidencias (ruta en curso o borrador/preparado en la fecha). */
+export function deliveryAssignmentOptionsForIncidentReschedule(
+  pkg: Package,
+  deliveries: Delivery[],
+  drivers: Driver[],
+  dateISO: string,
+): DeliveryAssignmentOption[] {
+  const onRoute = deliveryRouteOutcomeOptionsForPackage(pkg, deliveries, drivers)
+  const forDate = deliveryAssignmentOptionsForPackage(pkg, deliveries, drivers).filter((option) => {
+    const delivery = deliveries.find((item) => item.id === option.deliveryId)
+    if (!delivery || delivery.date !== dateISO) return false
+    return delivery.status === 'draft' || delivery.status === 'prepared'
+  })
+
+  const seen = new Set<string>()
+  const merged: DeliveryAssignmentOption[] = []
+  for (const option of [...onRoute, ...forDate]) {
+    if (seen.has(option.deliveryId)) continue
+    seen.add(option.deliveryId)
+    merged.push(option)
+  }
+  return merged
+}
+
 export function deliveryOptionsForPackageStatus(
   pkg: Package,
   deliveries: Delivery[],

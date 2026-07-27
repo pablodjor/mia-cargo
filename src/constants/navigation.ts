@@ -32,7 +32,7 @@ export const adminNavItems: NavItem[] = [
   { label: 'Repartos', path: '/deliveries', icon: Route, roles: ['admin', 'operator', 'reader'] },
   { label: 'Calendario', path: '/deliveries/calendar', icon: Calendar, roles: ['admin', 'operator', 'reader'] },
   { label: 'Cobranzas', path: '/payments', icon: CircleDollarSign, roles: ['admin', 'operator', 'reader'] },
-  { label: 'Clientes', path: '/persons', icon: Users, roles: ['admin', 'operator', 'reader'] },
+  { label: 'Clientes', path: '/clientes', icon: Users, roles: ['admin', 'operator', 'reader'] },
   { label: 'Incidencias', path: '/incidents', icon: AlertTriangle, roles: ['admin', 'operator', 'reader'] },
   { label: 'Historial', path: '/history', icon: History, roles: ['admin', 'operator', 'reader'] },
   { label: 'Choferes', path: '/drivers', icon: Bike, roles: ['admin'] },

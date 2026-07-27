@@ -107,7 +107,7 @@ export function GlobalSearchModal({ open, onClose }: GlobalSearchModalProps) {
       case 'person':
         if (result.person) {
           onClose()
-          navigate('/persons', { state: { openPersonId: result.person.id } })
+          navigate('/clientes', { state: { openPersonId: result.person.id } })
         }
         return
       case 'package':

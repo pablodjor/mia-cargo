@@ -3,6 +3,7 @@ import { Pencil, Trash2, UserCheck, UserX } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
+import { UsersListEmpty } from '@/components/common/list-empty-states'
 import { TableRowMenu } from '@/components/common/TableActions'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Button } from '@/components/ui/Button'
@@ -198,7 +199,7 @@ export default function UsersPage() {
         rowKey={(user) => user.id}
         sort={sort}
         onSort={handleSort}
-        empty={<p>No hay usuarios configurados.</p>}
+        empty={<UsersListEmpty />}
       />
 
       <Modal

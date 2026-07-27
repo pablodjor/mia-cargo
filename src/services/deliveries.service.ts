@@ -598,6 +598,47 @@ export const deliveriesService = {
     return refreshed
   },
 
+  async rescheduleFromIncident(input: {
+    packageId: string
+    deliveryId: string
+    dateISO: string
+    failureNotes?: string
+    failureReasonId?: string
+  }): Promise<Delivery> {
+    const { packageId, deliveryId, dateISO } = input
+    const pkg = storageService.getPackages().find((item) => item.id === packageId)
+    if (!pkg) throw new Error('Paquete no encontrado')
+
+    const failureReasonId = input.failureReasonId ?? pkg.failureReasonId ?? 'fr_1'
+    const trimmedNotes = (input.failureNotes ?? pkg.failureNotes ?? '').trim()
+    if (!trimmedNotes) {
+      throw new Error('El paquete no tiene observación registrada del intento fallido')
+    }
+
+    const delivery = storageService.getDeliveries().find((item) => item.id === deliveryId)
+    if (!delivery) throw new Error('Reparto no encontrado')
+
+    const onThisInProgress =
+      delivery.status === 'in_progress' &&
+      delivery.stops.some((stop) => stop.packageId === packageId)
+
+    if (onThisInProgress) {
+      return this.rescheduleStop(deliveryId, packageId, {
+        failureReasonId,
+        failureNotes: trimmedNotes,
+        dateISO,
+      })
+    }
+
+    const dateLabel = formatDeliveryDateDisplay(dateISO)
+    await packagesService.reschedule(packageId, dateLabel, {
+      failureReasonId,
+      failureNotes: trimmedNotes,
+      deliveryCode: delivery.code,
+    })
+    return this.addPackage(deliveryId, packageId)
+  },
+
   getTotalWeight(delivery: Delivery): number {
     const packages = storageService.getPackages()
     return delivery.stops.reduce((sum, stop) => {

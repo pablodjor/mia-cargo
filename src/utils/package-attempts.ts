@@ -53,3 +53,37 @@ export function resolveAttemptReason(
   }
   return 'Sin detalle registrado'
 }
+
+export function resolvePackageIncidentObservation(
+  pkg: Package,
+  reasonById: Map<string, string>,
+): { notes: string; failureReasonId?: string; attemptedAt?: string } {
+  if (pkg.failureNotes?.trim()) {
+    return {
+      notes: pkg.failureNotes.trim(),
+      failureReasonId: pkg.failureReasonId,
+      attemptedAt: pkg.lastAttemptAt,
+    }
+  }
+
+  const latestRelevant = getPackageFailedAttempts(pkg).find(
+    (attempt) => attempt.outcome === 'not_delivered' || attempt.outcome === 'rescheduled',
+  )
+  if (latestRelevant) {
+    return {
+      notes: resolveAttemptReason(latestRelevant, reasonById),
+      failureReasonId: latestRelevant.failureReasonId,
+      attemptedAt: latestRelevant.attemptedAt,
+    }
+  }
+
+  if (pkg.failureReasonId) {
+    return {
+      notes: reasonById.get(pkg.failureReasonId) ?? 'Sin detalle registrado',
+      failureReasonId: pkg.failureReasonId,
+      attemptedAt: pkg.lastAttemptAt,
+    }
+  }
+
+  return { notes: '' }
+}

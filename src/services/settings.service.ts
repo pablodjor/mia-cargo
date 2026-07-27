@@ -29,22 +29,25 @@ export const settingsService = {
 
   async restoreMocks(): Promise<DatabaseSnapshot> {
     await delay()
-    return storageService.resetToMock()
+    return storageService.applyPreset('full')
   },
 
   async applyMockPreset(preset: MockDataPreset): Promise<DatabaseSnapshot> {
     await delay()
-    return storageService.resetToPreset(preset)
+    return storageService.applyPreset(preset)
   },
 
   async clearLocalData(): Promise<void> {
     await delay()
-    storageService.clearAll()
+    await storageService.clearAll()
   },
 
   async reloadDemo(): Promise<DatabaseSnapshot> {
     await delay()
-    storageService.clearAll()
+    if (storageService.isRemoteDemo()) {
+      return storageService.applyPreset('full')
+    }
+    await storageService.clearAll()
     return storageService.resetToMock()
   },
 

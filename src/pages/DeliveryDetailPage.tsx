@@ -1,4 +1,4 @@
-import { CheckCircle2, Navigation, Navigation2, PackageX, Phone } from 'lucide-react'
+import { CheckCircle2, Navigation, Navigation2, Phone } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -7,8 +7,10 @@ import { DestinationBadge } from '@/components/common/DestinationBadge'
 import { DeliveryZoneBadge } from '@/components/common/DeliveryZoneBadge'
 import { DriverBadge } from '@/components/common/DriverBadge'
 import { DeliveryStopAdminActions } from '@/components/deliveries/DeliveryStopAdminActions'
+import { PackageDeliveryAttemptsList } from '@/components/packages/PackageDeliveryAttemptsList'
 import { FailureObservationFields } from '@/components/deliveries/FailureObservationFields'
 import { DownloadDeliveryReportButton } from '@/components/deliveries/DownloadDeliveryReportButton'
+import { PackageShCodeButton } from '@/components/common/PackageShCodeButton'
 import { PackagePaymentInfo, sumCashToCollect } from '@/components/common/PackagePaymentInfo'
 import { Alert } from '@/components/ui/Alert'
 import { Badge } from '@/components/ui/Badge'
@@ -108,7 +110,7 @@ export default function DeliveryDetailPage() {
   }
 
   const { delivery } = data
-  const reasonById = new Map((data.reasons ?? []).map((item) => [item.id, item]))
+  const reasonById = new Map((data.reasons ?? []).map((item) => [item.id, item.label]))
   const driver = data.drivers.find((item) => item.id === delivery.driverId)
   const courier =
     delivery.channel === 'courier' && delivery.courierId
@@ -514,15 +516,14 @@ export default function DeliveryDetailPage() {
                   </span>
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p
-                        className={cn(
-                          'font-mono text-sm font-semibold tracking-wide',
-                          isDelivered && 'text-success',
-                          isNext && 'text-warning',
-                        )}
-                      >
-                        {pkg?.shCode ?? stop.packageId}
-                      </p>
+                      {pkg ? (
+                        <PackageShCodeButton
+                          pkg={pkg}
+                          className={cn(isDelivered && 'text-success', isNext && 'text-warning')}
+                        />
+                      ) : (
+                        <span className="font-mono text-sm font-semibold">{stop.packageId}</span>
+                      )}
                       {pkg && !isCourier ? (
                         <DestinationBadge destination={pkg.destinationType} />
                       ) : null}
@@ -561,20 +562,12 @@ export default function DeliveryDetailPage() {
                       </p>
                     ) : null}
                     {isFailed && pkg ? (
-                      <div className="mt-2 rounded-[10px] border border-danger/25 bg-danger-light/50 px-3 py-2 text-sm">
-                        <p className="flex items-start gap-1.5 font-semibold text-danger">
-                          <PackageX className="mt-0.5 h-4 w-4 shrink-0" />
-                          <span>
-                            {pkg.failureNotes
-                              ? pkg.failureNotes
-                              : reasonById.get(pkg.failureReasonId ?? '')?.label ?? 'Sin detalle registrado'}
-                          </span>
-                        </p>
-                        {stop.attemptedAt ? (
-                          <p className="mt-1 text-xs text-text-muted">
-                            Registrado: {formatDateTime(stop.attemptedAt)}
-                          </p>
-                        ) : null}
+                      <div className="mt-2">
+                        <PackageDeliveryAttemptsList
+                          pkg={pkg}
+                          reasonById={reasonById}
+                          title="Intentos de entrega"
+                        />
                       </div>
                     ) : null}
                   </div>
@@ -681,9 +674,9 @@ export default function DeliveryDetailPage() {
                   }
                 }}
               >
-                <span className="min-w-0">
-                  <span className="font-mono font-semibold">{item.shCode}</span>
-                  <span className="text-sm text-text-secondary"> — {item.ownerName}</span>
+                  <span className="min-w-0">
+                    <PackageShCodeButton pkg={item} />
+                    <span className="text-sm text-text-secondary"> — {item.ownerName}</span>
                   <span className="mt-0.5 block truncate text-xs text-text-secondary" title={formatFullAddress(item)}>
                     {formatFullAddress(item)}
                   </span>

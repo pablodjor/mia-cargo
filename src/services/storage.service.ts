@@ -125,13 +125,21 @@ function scheduleRemotePush(): void {
   }, 700)
 }
 
-async function flushRemotePush(): Promise<void> {
+async function flushRemotePushNow(): Promise<void> {
+  if (pushTimer) {
+    clearTimeout(pushTimer)
+    pushTimer = null
+  }
+  await flushRemotePush({ throwOnError: true })
+}
+
+async function flushRemotePush(options?: { throwOnError?: boolean }): Promise<void> {
   if (!REMOTE_MODE || !remoteCache || pushInFlight) return
   pushInFlight = true
   try {
     remoteUpdatedAt = await pushRemoteDatabase(remoteCache)
-  } catch {
-    // La demo sigue funcionando en memoria; el próximo cambio reintenta.
+  } catch (error) {
+    if (options?.throwOnError) throw error
   } finally {
     pushInFlight = false
   }
@@ -260,23 +268,31 @@ export const storageService = {
   },
 
   resetToMock(): DatabaseSnapshot {
-    return this.resetToPreset('full')
-  },
-
-  resetToPreset(preset: MockDataPreset): DatabaseSnapshot {
-    const snapshot = createDatabasePreset(preset)
+    const snapshot = createDatabasePreset('full')
     this.saveSnapshot(snapshot)
-    this.clearSession()
     if (!REMOTE_MODE) {
+      this.clearSession()
       localStorage.removeItem(STORAGE_KEYS.scannerHistory)
     }
     return snapshot
   },
 
-  clearAll(): void {
+  async applyPreset(preset: MockDataPreset): Promise<DatabaseSnapshot> {
+    const snapshot = createDatabasePreset(preset)
+    this.saveSnapshot(snapshot)
+    if (REMOTE_MODE) {
+      await flushRemotePushNow()
+    } else {
+      this.clearSession()
+      localStorage.removeItem(STORAGE_KEYS.scannerHistory)
+    }
+    bumpStorageRevision()
+    return snapshot
+  },
+
+  async clearAll(): Promise<void> {
     if (REMOTE_MODE && remoteCache) {
-      applySnapshot(createInitialDatabase())
-      scheduleRemotePush()
+      await this.applyPreset('empty')
       return
     }
 

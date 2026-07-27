@@ -2,6 +2,7 @@ import { Download, CircleDollarSign, PackageCheck, ArrowLeftRight } from 'lucide
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { PaymentBadge } from '@/components/common/PaymentBadge'
+import { PackageShCodeButton } from '@/components/common/PackageShCodeButton'
 import { DestinationBadge } from '@/components/common/DestinationBadge'
 import { DatePeriodFilter, datePeriodFilterLabel } from '@/components/common/DatePeriodFilter'
 import { TableRowMenu } from '@/components/common/TableActions'
@@ -156,7 +157,7 @@ export default function PaymentsPage() {
       key: 'code',
       header: 'Código',
       sortable: true,
-      render: (pkg) => <strong className="font-mono">{pkg.shCode}</strong>,
+      render: (pkg) => <PackageShCodeButton pkg={pkg} />,
     },
     { key: 'owner', header: 'Destinatario', sortable: true, render: (pkg) => pkg.ownerName },
     {

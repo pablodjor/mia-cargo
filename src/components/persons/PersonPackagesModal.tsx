@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { History, Route } from 'lucide-react'
+import { PackageShCodeButton } from '@/components/common/PackageShCodeButton'
 import { TableActionLink, TableRowMenu } from '@/components/common/TableActions'
 import { DestinationBadge } from '@/components/common/DestinationBadge'
 import { DriverBadge } from '@/components/common/DriverBadge'
@@ -138,11 +139,7 @@ export function PersonPackagesModal({
       key: 'code',
       header: 'SH',
       sortable: true,
-      render: (pkg) => (
-        <span className="rounded-md bg-primary-light px-2 py-1 font-mono text-xs font-bold text-primary-hover">
-          {pkg.shCode}
-        </span>
-      ),
+      render: (pkg) => <PackageShCodeButton pkg={pkg} />,
     },
     {
       key: 'status',

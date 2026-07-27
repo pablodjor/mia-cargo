@@ -3,6 +3,7 @@ import { Pencil, Power } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
+import { CouriersListEmpty } from '@/components/common/list-empty-states'
 import { TableRowMenu } from '@/components/common/TableActions'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -159,7 +160,7 @@ export default function CouriersPage() {
         rowKey={(c) => c.id}
         sort={sort}
         onSort={handleSort}
-        empty={<p>No hay correos configurados.</p>}
+        empty={<CouriersListEmpty />}
       />
       <Modal
         open={editing !== undefined}
