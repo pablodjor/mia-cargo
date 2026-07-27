@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/Button'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
+import { PageLoadError } from '@/components/common/PageLoadError'
 import { PageLoader } from '@/components/ui/PageLoader'
 import { Pagination } from '@/components/ui/Pagination'
 import { Select } from '@/components/ui/Select'
@@ -112,7 +113,7 @@ function getSummarySortValue(row: PersonSummary, key: string): string | number {
 export default function PersonsPage() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { data, reload, loading } = useAsyncData(async () => {
+  const { data, reload, loading, error } = useAsyncData(async () => {
     const [summaries, packages, deliveries, drivers, couriers] = await Promise.all([
       personsService.getSummaries(),
       packagesService.getAll(),
@@ -460,6 +461,7 @@ export default function PersonsPage() {
   ]
 
   if (loading) return <PageLoader label="Cargando clientes…" />
+  if (error && !data) return <PageLoadError message={error} onRetry={reload} />
 
   return (
     <div className="space-y-5">

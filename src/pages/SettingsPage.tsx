@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { ThemeToggle } from '@/components/common/ThemeToggle'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { PageLoadError } from '@/components/common/PageLoadError'
 import { PageLoader } from '@/components/ui/PageLoader'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { MetricCard } from '@/components/ui/MetricCard'
@@ -41,7 +42,7 @@ const PRESET_COPY: Record<
 
 export default function SettingsPage() {
   const { theme } = useTheme()
-  const { data, reload, loading } = useAsyncData(async () => ({
+  const { data, reload, loading, error } = useAsyncData(async () => ({
     info: await settingsService.getVersionInfo(),
     counts: await settingsService.getCounts(),
   }))
@@ -83,6 +84,7 @@ export default function SettingsPage() {
         : ''
 
   if (loading) return <PageLoader label="Cargando configuración…" />
+  if (error && !data) return <PageLoadError message={error} onRetry={reload} />
 
   return (
     <div className="space-y-5 p-4 md:p-6">

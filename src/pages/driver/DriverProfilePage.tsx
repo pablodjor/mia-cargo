@@ -1,6 +1,7 @@
 import { Bike, Mail, Phone, Truck, User } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
+import { PageLoadError } from '@/components/common/PageLoadError'
 import { PageLoader } from '@/components/ui/PageLoader'
 import { ROLE_LABELS } from '@/constants/labels'
 import { useAuth } from '@/contexts/AuthContext'
@@ -11,7 +12,7 @@ import { vehiclesService } from '@/services/vehicles.service'
 export default function DriverProfilePage() {
   const { session } = useAuth()
 
-  const { data, loading } = useAsyncData(async () => {
+  const { data, loading, error, reload } = useAsyncData(async () => {
     if (!session?.driverId) return { driver: null, vehicle: null }
     const driver = await driversService.getById(session.driverId)
     const vehicle = driver?.habitualVehicleId
@@ -21,6 +22,7 @@ export default function DriverProfilePage() {
   }, [session?.driverId])
 
   if (loading) return <PageLoader label="Cargando perfil…" />
+  if (error && !data) return <PageLoadError message={error} onRetry={reload} />
 
   const driver = data?.driver
   const vehicle = data?.vehicle

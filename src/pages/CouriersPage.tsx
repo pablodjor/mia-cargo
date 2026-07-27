@@ -8,6 +8,7 @@ import { TableRowMenu } from '@/components/common/TableActions'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
+import { PageLoadError } from '@/components/common/PageLoadError'
 import { PageLoader } from '@/components/ui/PageLoader'
 import { Select } from '@/components/ui/Select'
 import { Table, type TableColumn, type TableSortState } from '@/components/ui/Table'
@@ -48,7 +49,7 @@ const emptyValues: CourierFormValues = {
 }
 
 export default function CouriersPage() {
-  const { data, reload, loading } = useAsyncData(async () => couriersService.getAll())
+  const { data, reload, loading, error } = useAsyncData(async () => couriersService.getAll())
   const [editing, setEditing] = useState<Courier | null | undefined>(undefined)
   const [sort, setSort] = useState<TableSortState>(DEFAULT_SORT)
   const form = useForm<CourierFormValues>({
@@ -147,6 +148,7 @@ export default function CouriersPage() {
   ]
 
   if (loading) return <PageLoader label="Cargando correos…" />
+  if (error && data === null) return <PageLoadError message={error} onRetry={reload} />
 
   return (
     <div className="space-y-5">

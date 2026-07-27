@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Table, type TableColumn, type TableSortState } from '@/components/ui/Table'
+import { PageLoadError } from '@/components/common/PageLoadError'
 import { PageLoader } from '@/components/ui/PageLoader'
 import { DELIVERY_CHANNEL_LABELS, DELIVERY_STATUS_LABELS, DELIVERY_ZONE_LABELS } from '@/constants/labels'
 import { deliveryZoneSelectOptions } from '@/utils/delivery-zone'
@@ -123,7 +124,7 @@ function openDeliveryRoute(delivery: Delivery, packages: Package[], courier?: Co
 }
 
 export default function DeliveriesPage() {
-  const { data, reload, loading } = useAsyncData(async () => {
+  const { data, reload, loading, error } = useAsyncData(async () => {
     const [deliveries, packages, couriers, drivers, vehicles, reasons] = await Promise.all([
       deliveriesService.getAll(),
       packagesService.getAll(),
@@ -377,6 +378,7 @@ export default function DeliveriesPage() {
   ]
 
   if (loading) return <PageLoader label="Cargando repartos…" />
+  if (error && !data) return <PageLoadError message={error} onRetry={reload} />
 
   return (
     <div className="space-y-5">

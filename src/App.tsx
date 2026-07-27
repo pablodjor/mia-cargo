@@ -1,7 +1,6 @@
-import { lazy, Suspense } from 'react'
+import { lazy } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { Toaster } from 'sonner'
-import { PageLoader } from '@/components/ui/PageLoader'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { ThemeProvider, useTheme } from '@/contexts/ThemeContext'
 import { AppLayout } from '@/layouts/AppLayout'
@@ -46,8 +45,7 @@ function AppRoutes() {
 
   return (
     <BrowserRouter>
-        <Suspense fallback={<PageLoader fullScreen />}>
-          <Routes>
+        <Routes>
             <Route element={<PublicOnlyRoute />}>
               <Route path="/login" element={<LoginPage />} />
             </Route>
@@ -86,7 +84,6 @@ function AppRoutes() {
 
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
-        </Suspense>
         <Toaster richColors position="top-right" theme={theme} />
       </BrowserRouter>
   )

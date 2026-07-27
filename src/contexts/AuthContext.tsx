@@ -33,12 +33,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let active = true
-    void storageService.init().finally(() => {
-      if (!active) return
-      storageService.seedIfNeeded()
-      setSession(authService.getSessionSync())
-      setLoading(false)
-    })
+    void storageService
+      .init()
+      .catch(() => undefined)
+      .finally(() => {
+        if (!active) return
+        storageService.seedIfNeeded()
+        setSession(authService.getSessionSync())
+        setLoading(false)
+      })
     return () => {
       active = false
     }

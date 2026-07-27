@@ -27,6 +27,7 @@ import { PackagesListEmpty } from '@/components/common/list-empty-states'
 import { PackageShCodeButton } from '@/components/common/PackageShCodeButton'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
+import { PageLoadError } from '@/components/common/PageLoadError'
 import { PageLoader } from '@/components/ui/PageLoader'
 import { Pagination } from '@/components/ui/Pagination'
 import { Select } from '@/components/ui/Select'
@@ -147,7 +148,7 @@ function createBlank(rate: number): PackageFormValues {
 
 export default function PackagesPage() {
   const { guardDeliveryDayAction, deliveryDayGuardDialog, isGuardOpen } = useDeliveryDayGuard()
-  const { data, reload, loading } = useAsyncData(async () => ({
+  const { data, reload, loading, error } = useAsyncData(async () => ({
     packages: await packagesService.getAll(),
     deliveries: await deliveriesService.getAll(),
     drivers: await driversService.getAll(),
@@ -872,6 +873,7 @@ export default function PackagesPage() {
   ]
 
   if (loading) return <PageLoader label="Cargando paquetes…" />
+  if (error && !data) return <PageLoadError message={error} onRetry={reload} />
 
   return (
     <div className="space-y-5">

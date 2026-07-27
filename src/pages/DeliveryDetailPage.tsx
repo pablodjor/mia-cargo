@@ -17,6 +17,7 @@ import { Badge } from '@/components/ui/Badge'
 import { DriverPaymentConfirmModal } from '@/components/driver/DriverPaymentConfirmModal'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { PageLoadError } from '@/components/common/PageLoadError'
 import { PageLoader } from '@/components/ui/PageLoader'
 import { LiveBadge, LiveIndicator } from '@/components/ui/LiveIndicator'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
@@ -67,7 +68,7 @@ export default function DeliveryDetailPage() {
   const [confirmPayment, setConfirmPayment] = useState<PaymentStatus>('paid')
   const [failureNotes, setFailureNotes] = useState('')
   const { guardDeliveryDayAction, deliveryDayGuardDialog, isGuardOpen } = useDeliveryDayGuard()
-  const { data, reload, loading } = useAsyncData(async () => {
+  const { data, reload, loading, error } = useAsyncData(async () => {
     const [delivery, packages, couriers, drivers, reasons, vehicles] = await Promise.all([
       deliveriesService.getById(id),
       packagesService.getAll(),
@@ -100,6 +101,7 @@ export default function DeliveryDetailPage() {
   }, [data, addSearch])
 
   if (loading) return <PageLoader label="Cargando reparto…" />
+  if (error && !data) return <PageLoadError message={error} onRetry={reload} />
   if (!data?.delivery) {
     return (
       <div className="space-y-3">

@@ -1,11 +1,14 @@
+import { Suspense } from 'react'
 import { LogOut, UserRound } from 'lucide-react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import logo from '@/assets/miacargo-logo.svg'
+import { RouteErrorBoundary } from '@/components/common/RouteErrorBoundary'
 import { ThemeToggle } from '@/components/common/ThemeToggle'
 import { useAuth } from '@/contexts/AuthContext'
 import { formatDeliveryDateDisplay } from '@/utils/date'
 import { Button } from '@/components/ui/Button'
 import { IconButton } from '@/components/ui/IconButton'
+import { PageLoader } from '@/components/ui/PageLoader'
 import { cn } from '@/utils/cn'
 
 export function DriverLayout() {
@@ -62,7 +65,11 @@ export function DriverLayout() {
       </header>
 
       <main className="mx-auto max-w-lg px-4 py-4">
-        <Outlet />
+        <RouteErrorBoundary>
+          <Suspense fallback={<PageLoader label="Cargando…" />}>
+            <Outlet />
+          </Suspense>
+        </RouteErrorBoundary>
       </main>
     </div>
   )

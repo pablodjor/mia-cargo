@@ -7,6 +7,7 @@ import { PackagePaymentInfo } from '@/components/common/PackagePaymentInfo'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
+import { PageLoadError } from '@/components/common/PageLoadError'
 import { PageLoader } from '@/components/ui/PageLoader'
 import { Select } from '@/components/ui/Select'
 import { StatusBadge } from '@/components/ui/StatusBadge'
@@ -37,7 +38,7 @@ export default function ScannerPage() {
   const [code, setCode] = useState('')
   const [result, setResult] = useState<Package | null>(null)
   const [deliveryId, setDeliveryId] = useState('')
-  const { data, reload, loading } = useAsyncData(async () => {
+  const { data, reload, loading, error } = useAsyncData(async () => {
     const [packages, deliveries, drivers] = await Promise.all([
       packagesService.getAll(),
       deliveriesService.getAll(),
@@ -70,6 +71,7 @@ export default function ScannerPage() {
     []
 
   if (loading) return <PageLoader label="Cargando búsqueda…" />
+  if (error && !data) return <PageLoadError message={error} onRetry={reload} />
 
   const address = result ? formatPackageMapsAddress(result) : ''
   const canAddToDelivery = result && result.status !== 'delivered' && result.status !== 'cancelled'

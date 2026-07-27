@@ -16,6 +16,7 @@ import { toast } from 'sonner'
 import { Alert } from '@/components/ui/Alert'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { PageLoadError } from '@/components/common/PageLoadError'
 import { PageLoader } from '@/components/ui/PageLoader'
 import { LiveIndicator } from '@/components/ui/LiveIndicator'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
@@ -85,7 +86,7 @@ export default function DriverDeliveryPage() {
   const tomorrowLabel = formatDeliveryDateDisplay(tomorrowISO)
   const { guardDeliveryDayAction, deliveryDayGuardDialog, isGuardOpen } = useDeliveryDayGuard()
 
-  const { data, reload, loading } = useAsyncData(async () => {
+  const { data, reload, loading, error } = useAsyncData(async () => {
     const [delivery, packages, couriers, vehicles, reasons] = await Promise.all([
       deliveriesService.getById(id),
       packagesService.getAll(),
@@ -102,7 +103,9 @@ export default function DriverDeliveryPage() {
   })
   const failureNotesValue = form.watch('failureNotes') ?? ''
 
-  if (loading || !data) return <PageLoader label="Cargando reparto…" />
+  if (loading) return <PageLoader label="Cargando reparto…" />
+  if (error && !data) return <PageLoadError message={error} onRetry={reload} />
+  if (!data) return <PageLoader label="Cargando reparto…" />
   if (!data.delivery) {
     return (
       <div className="space-y-3 p-4">

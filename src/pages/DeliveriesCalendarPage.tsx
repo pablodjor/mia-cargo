@@ -10,6 +10,7 @@ import {
 } from '@/components/deliveries/DeliveryCalendar'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { PageLoadError } from '@/components/common/PageLoadError'
 import { PageLoader } from '@/components/ui/PageLoader'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import {
@@ -45,7 +46,7 @@ export default function DeliveriesCalendarPage() {
   )
   const [showCancelled, setShowCancelled] = useState(false)
 
-  const { data, loading } = useAsyncData(async () => {
+  const { data, loading, error, reload } = useAsyncData(async () => {
     const [deliveries, packages, drivers, vehicles, couriers] = await Promise.all([
       deliveriesService.getAll(),
       packagesService.getAll(),
@@ -118,6 +119,7 @@ export default function DeliveriesCalendarPage() {
   }
 
   if (loading) return <PageLoader label="Cargando calendario…" />
+  if (error && !data) return <PageLoadError message={error} onRetry={reload} />
 
   const detailDriver = selectedDelivery ? driverById.get(selectedDelivery.driverId) : undefined
   const detailVehicle = selectedDelivery ? vehicleById.get(selectedDelivery.vehicleId) : undefined

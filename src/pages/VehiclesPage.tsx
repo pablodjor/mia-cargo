@@ -8,6 +8,7 @@ import { TableRowMenu } from '@/components/common/TableActions'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
+import { PageLoadError } from '@/components/common/PageLoadError'
 import { PageLoader } from '@/components/ui/PageLoader'
 import { Select } from '@/components/ui/Select'
 import { Table, type TableColumn, type TableSortState } from '@/components/ui/Table'
@@ -37,7 +38,7 @@ function getVehicleSortValue(vehicle: Vehicle, key: string): string | number {
 }
 
 export default function VehiclesPage() {
-  const { data, reload, loading } = useAsyncData(async () => ({
+  const { data, reload, loading, error } = useAsyncData(async () => ({
     vehicles: await vehiclesService.getAll(),
     drivers: await driversService.getAll(),
   }))
@@ -126,6 +127,7 @@ export default function VehiclesPage() {
   ]
 
   if (loading) return <PageLoader label="Cargando vehículos…" />
+  if (error && !data) return <PageLoadError message={error} onRetry={reload} />
 
   return (
     <div className="space-y-5">

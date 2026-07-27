@@ -9,6 +9,7 @@ import { sumCashToCollect } from '@/components/common/PackagePaymentInfo'
 import { Alert } from '@/components/ui/Alert'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { PageLoadError } from '@/components/common/PageLoadError'
 import { PageLoader } from '@/components/ui/PageLoader'
 import { LiveIndicator } from '@/components/ui/LiveIndicator'
 import { StatusBadge } from '@/components/ui/StatusBadge'
@@ -50,7 +51,7 @@ export default function DriverHomePage() {
   const [startingId, setStartingId] = useState<string | null>(null)
   const { guardDeliveryDayAction, deliveryDayGuardDialog } = useDeliveryDayGuard()
 
-  const { data, loading, reload } = useAsyncData(async () => {
+  const { data, loading, reload, error } = useAsyncData(async () => {
     if (!driverId) return { deliveries: [], couriers: [], packages: [] }
     const [deliveries, couriers, packages] = await Promise.all([
       deliveriesService.getByDriver(driverId),
@@ -95,6 +96,7 @@ export default function DriverHomePage() {
   }
 
   if (loading) return <PageLoader label="Cargando repartos…" />
+  if (error && !data) return <PageLoadError message={error} onRetry={reload} />
 
   const activeFilter = STATUS_FILTERS.find((item) => item.id === statusFilter)
 

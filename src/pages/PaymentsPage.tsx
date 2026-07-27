@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { MetricCard } from '@/components/ui/MetricCard'
+import { PageLoadError } from '@/components/common/PageLoadError'
 import { PageLoader } from '@/components/ui/PageLoader'
 import { Pagination } from '@/components/ui/Pagination'
 import { Select } from '@/components/ui/Select'
@@ -98,7 +99,7 @@ export default function PaymentsPage() {
   const { session } = useAuth()
   const canManagePayments = session?.role === 'admin' || session?.role === 'operator'
 
-  const { data, loading, reload } = useAsyncData(async () => ({
+  const { data, loading, reload, error } = useAsyncData(async () => ({
     packages: await packagesService.getAll(),
     deliveries: await deliveriesService.getAll(),
   }))
@@ -254,6 +255,7 @@ export default function PaymentsPage() {
   }
 
   if (loading) return <PageLoader label="Cargando cobranzas…" />
+  if (error && !data) return <PageLoadError message={error} onRetry={reload} />
 
   return (
     <div className="space-y-5">

@@ -1,8 +1,10 @@
+import { Suspense } from 'react'
 import { LogOut, Menu, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { GlobalSearchModal } from '@/components/common/GlobalSearchModal'
 import { NotificationsPanel } from '@/components/common/NotificationsPanel'
+import { RouteErrorBoundary } from '@/components/common/RouteErrorBoundary'
 import { ThemeToggle } from '@/components/common/ThemeToggle'
 import { adminNavItems } from '@/constants/navigation'
 import { useAuth } from '@/contexts/AuthContext'
@@ -13,6 +15,7 @@ import { Drawer } from '@/components/ui/Drawer'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { IconButton } from '@/components/ui/IconButton'
 import { SearchInput } from '@/components/ui/SearchInput'
+import { PageLoader } from '@/components/ui/PageLoader'
 import { cn } from '@/utils/cn'
 
 const titles: Record<string, string> = {
@@ -159,7 +162,11 @@ export function AppLayout() {
           </div>
         </header>
         <main className="px-4 py-6 lg:px-6">
-          <Outlet />
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader label="Cargando página…" />}>
+              <Outlet />
+            </Suspense>
+          </RouteErrorBoundary>
         </main>
       </div>
 

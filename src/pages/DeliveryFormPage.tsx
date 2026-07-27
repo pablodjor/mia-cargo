@@ -18,6 +18,7 @@ import { DriverPaymentConfirmModal } from '@/components/driver/DriverPaymentConf
 import { Alert } from '@/components/ui/Alert'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
 import { Modal } from '@/components/ui/Modal'
+import { PageLoadError } from '@/components/common/PageLoadError'
 import { PageLoader } from '@/components/ui/PageLoader'
 import { DELIVERY_CHANNEL_LABELS, PACKAGE_STATUS_LABELS } from '@/constants/labels'
 import { DRIVER_DEFAULT_FAILURE_REASON_ID } from '@/constants/driver-observations'
@@ -74,7 +75,7 @@ export default function DeliveryFormPage() {
   const deliveryIdRef = useRef<string | undefined>(undefined)
   const { guardDeliveryDayAction, deliveryDayGuardDialog, isGuardOpen } = useDeliveryDayGuard()
 
-  const { data, loading, reload } = useAsyncData(async () => {
+  const { data, loading, reload, error } = useAsyncData(async () => {
     const [delivery, drivers, vehicles, packages, couriers] = await Promise.all([
       id ? deliveriesService.getById(id) : Promise.resolve(null),
       driversService.getAll(),
@@ -534,7 +535,9 @@ export default function DeliveryFormPage() {
     })
   }
 
-  if (loading || !data) return <PageLoader label="Cargando reparto…" />
+  if (loading) return <PageLoader label="Cargando reparto…" />
+  if (error && !data) return <PageLoadError message={error} onRetry={reload} />
+  if (!data) return <PageLoader label="Cargando reparto…" />
 
   const currentStatus = data.delivery?.status
   const canSaveDraft = !id || currentStatus === 'draft'

@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/Button'
 import { DateField } from '@/components/ui/DateField'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
+import { PageLoadError } from '@/components/common/PageLoadError'
 import { PageLoader } from '@/components/ui/PageLoader'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Table, type TableColumn, type TableSortState } from '@/components/ui/Table'
@@ -53,7 +54,7 @@ function getIncidentSortValue(pkg: Package, key: string): string | number {
 }
 
 export default function IncidentsPage() {
-  const { data, reload, loading } = useAsyncData(async () => {
+  const { data, reload, loading, error } = useAsyncData(async () => {
     const [packages, deliveries, drivers, failureReasons] = await Promise.all([
       packagesService.getAll(),
       deliveriesService.getAll(),
@@ -220,6 +221,7 @@ export default function IncidentsPage() {
   ]
 
   if (loading) return <PageLoader label="Cargando incidencias…" />
+  if (error && !data) return <PageLoadError message={error} onRetry={reload} />
 
   return (
     <div className="space-y-5">

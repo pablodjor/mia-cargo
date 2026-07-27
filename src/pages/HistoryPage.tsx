@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Pagination } from '@/components/ui/Pagination'
+import { PageLoadError } from '@/components/common/PageLoadError'
 import { PageLoader } from '@/components/ui/PageLoader'
 import { Select } from '@/components/ui/Select'
 import { StatusBadge } from '@/components/ui/StatusBadge'
@@ -139,7 +140,7 @@ function HistoryCodeCell({
 export default function HistoryPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const entityId = searchParams.get('entityId') ?? ''
-  const { data, loading } = useAsyncData(
+  const { data, loading, error, reload } = useAsyncData(
     async () => {
       const [history, packages, deliveries, pkg] = await Promise.all([
         historyService.getAll(),
@@ -259,6 +260,7 @@ export default function HistoryPage() {
   ]
 
   if (loading) return <PageLoader label="Cargando historial…" />
+  if (error && !data) return <PageLoadError message={error} onRetry={reload} />
 
   return (
     <div className="space-y-5 p-4 md:p-6">

@@ -16,6 +16,7 @@ import { Card } from '@/components/ui/Card'
 import { LiveIndicator } from '@/components/ui/LiveIndicator'
 import { MetricCard } from '@/components/ui/MetricCard'
 import { StatusBadge } from '@/components/ui/StatusBadge'
+import { PageLoadError } from '@/components/common/PageLoadError'
 import { PageLoader } from '@/components/ui/PageLoader'
 import { PAYMENT_STATUS_LABELS } from '@/constants/labels'
 import { DESTINATION_LABELS } from '@/constants/labels'
@@ -97,7 +98,7 @@ export default function DashboardPage() {
   const yesterday = addDaysISODate(-1)
   const [dateFilter, setDateFilter] = useState('')
 
-  const { data, loading } = useAsyncData(async () => {
+  const { data, loading, error, reload } = useAsyncData(async () => {
     const [metrics, deliveries, history, drivers, packages] = await Promise.all([
       deliveriesService.getDashboardMetrics(),
       deliveriesService.getAll(),
@@ -134,7 +135,9 @@ export default function DashboardPage() {
     return `Resumen del ${formatDeliveryDateDisplay(dateFilter)}`
   }, [dateFilter, today, yesterday])
 
-  if (loading || !data || !periodStats) return <PageLoader label="Cargando tablero…" />
+  if (loading) return <PageLoader label="Cargando tablero…" />
+  if (error && !data) return <PageLoadError message={error} onRetry={reload} />
+  if (!data || !periodStats) return <PageLoader label="Cargando tablero…" />
 
   const { metrics } = data
   const driverById = new Map(data.drivers.map((driver) => [driver.id, driver]))

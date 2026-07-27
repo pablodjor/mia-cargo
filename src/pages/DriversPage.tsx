@@ -10,6 +10,7 @@ import { TableRowMenu } from '@/components/common/TableActions'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
+import { PageLoadError } from '@/components/common/PageLoadError'
 import { PageLoader } from '@/components/ui/PageLoader'
 import { Select } from '@/components/ui/Select'
 import { Table, type TableColumn, type TableSortState } from '@/components/ui/Table'
@@ -49,7 +50,7 @@ function getDriverSortValue(
 export default function DriversPage() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { data, reload, loading } = useAsyncData(async () => {
+  const { data, reload, loading, error } = useAsyncData(async () => {
     const [drivers, vehicles, deliveries, packages, couriers, reasons] = await Promise.all([
       driversService.getAll(),
       vehiclesService.getAll(),
@@ -194,6 +195,7 @@ export default function DriversPage() {
   ]
 
   if (loading) return <PageLoader label="Cargando choferes…" />
+  if (error && !data) return <PageLoadError message={error} onRetry={reload} />
 
   return (
     <div className="space-y-5">
