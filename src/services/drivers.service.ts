@@ -1,10 +1,11 @@
 import type { Driver, EntityStatus } from '@/types'
 import { createId } from '@/utils/id'
 import { delay } from '@/utils/delay'
+import { formatFullName } from '@/utils/person-name'
 import { historyService } from './history.service'
 import { storageService } from './storage.service'
 
-export type DriverInput = Omit<Driver, 'id' | 'createdAt' | 'updatedAt' | 'deliveryCount'> & {
+export type DriverInput = Omit<Driver, 'id' | 'createdAt' | 'updatedAt' | 'deliveryCount' | 'name'> & {
   deliveryCount?: number
 }
 
@@ -26,6 +27,8 @@ export const driversService = {
     const now = new Date().toISOString()
     const driver: Driver = {
       ...input,
+      name: formatFullName(input),
+      email: input.email?.trim() || undefined,
       id: createId('drv'),
       deliveryCount: input.deliveryCount ?? 0,
       createdAt: now,
@@ -53,6 +56,8 @@ export const driversService = {
     const updated: Driver = {
       ...current,
       ...input,
+      name: formatFullName({ ...current, ...input }),
+      email: input.email !== undefined ? input.email.trim() || undefined : current.email,
       id: current.id,
       updatedAt: new Date().toISOString(),
     }

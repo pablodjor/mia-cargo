@@ -1,12 +1,14 @@
 import type { Package, Person, PersonPackageStats, PersonSummary } from '@/types'
+import { formatFullName, getPackageOwnerName } from '@/utils/person-name'
 
 const ACTIVE_PACKAGE_STATUSES = new Set(['pending', 'assigned', 'in_route', 'not_delivered', 'rescheduled'])
 
 export function getPackagesForPerson(person: Person, packages: Package[]): Package[] {
+  const personName = formatFullName(person)
   return packages.filter(
     (pkg) =>
       pkg.personId === person.id ||
-      (pkg.ownerName === person.name && pkg.ownerPhone === person.phone),
+      (getPackageOwnerName(pkg) === personName && pkg.ownerPhone === person.phone),
   )
 }
 
@@ -70,7 +72,9 @@ export function buildPersonSummaries(persons: Person[], packages: Package[]): Pe
 export function applyPersonToPackageFields(person: Person) {
   return {
     personId: person.id,
-    ownerName: person.name,
+    ownerFirstName: person.firstName,
+    ownerLastName: person.lastName,
+    ownerName: formatFullName(person),
     ownerPhone: person.phone,
     address: person.address,
     city: person.city,

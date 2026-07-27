@@ -1,4 +1,5 @@
 import type { Courier, Delivery, Driver, Package, Person, Vehicle } from '@/types'
+import { formatFullName, getPackageOwnerName } from '@/utils/person-name'
 
 export type GlobalSearchResultType =
   | 'person'
@@ -90,7 +91,7 @@ export function searchGlobal(query: string, data: GlobalSearchData): GlobalSearc
   for (const person of data.persons) {
     if (
       !matchesAny(
-        [person.name, person.phone, person.address, person.addressUnit, person.addressBell, person.city, person.province, person.postalCode, person.notes],
+        [formatFullName(person), person.phone, person.address, person.addressUnit, person.addressBell, person.city, person.province, person.postalCode, person.notes],
         normalized,
       )
     ) {
@@ -102,9 +103,9 @@ export function searchGlobal(query: string, data: GlobalSearchData): GlobalSearc
       {
         id: `person-${person.id}`,
         type: 'person',
-        title: person.name,
+        title: formatFullName(person),
         subtitle: `${person.phone} · ${person.city}`,
-        keywords: [person.name, person.phone, person.address, person.city, person.province].join(' '),
+        keywords: [formatFullName(person), person.phone, person.address, person.city, person.province].join(' '),
         person,
       },
       MAX_PER_GROUP,
@@ -114,7 +115,7 @@ export function searchGlobal(query: string, data: GlobalSearchData): GlobalSearc
   for (const pkg of data.packages) {
     if (
       !matchesAny(
-        [pkg.shCode, pkg.ownerName, pkg.ownerPhone, pkg.address, pkg.city, pkg.province, pkg.postalCode],
+        [pkg.shCode, getPackageOwnerName(pkg), pkg.ownerPhone, pkg.address, pkg.city, pkg.province, pkg.postalCode],
         normalized,
       )
     ) {
@@ -125,21 +126,21 @@ export function searchGlobal(query: string, data: GlobalSearchData): GlobalSearc
       id: `package-${pkg.id}`,
       type: 'package',
       title: pkg.shCode,
-      subtitle: `${pkg.ownerName} · ${pkg.ownerPhone}`,
-      keywords: [pkg.shCode, pkg.ownerName, pkg.ownerPhone, pkg.city, pkg.province].join(' '),
+      subtitle: `${getPackageOwnerName(pkg)} · ${pkg.ownerPhone}`,
+      keywords: [pkg.shCode, getPackageOwnerName(pkg), pkg.ownerPhone, pkg.city, pkg.province].join(' '),
       package: pkg,
     }, MAX_PER_GROUP)
   }
 
   for (const driver of data.drivers) {
-    if (!matchesAny([driver.name, driver.dni, driver.email, driver.phone], normalized)) continue
+    if (!matchesAny([formatFullName(driver), driver.dni, driver.email, driver.phone], normalized)) continue
 
     pushLimited(byType.driver, {
       id: `driver-${driver.id}`,
       type: 'driver',
-      title: driver.name,
+      title: formatFullName(driver),
       subtitle: `${driver.phone} · DNI ${driver.dni}`,
-      keywords: [driver.name, driver.dni, driver.email, driver.phone].join(' '),
+      keywords: [formatFullName(driver), driver.dni, driver.email ?? '', driver.phone].join(' '),
       driver,
     }, MAX_PER_GROUP)
   }

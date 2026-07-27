@@ -9,6 +9,7 @@ import { Modal } from '@/components/ui/Modal'
 import { DELIVERY_ZONE_LABELS, PACKAGE_STATUS_LABELS } from '@/constants/labels'
 import type { Courier, DeliveryZone, Package } from '@/types'
 import { packageMatchesDeliveryZone } from '@/utils/delivery-zone'
+import { formatPackageMapsAddress } from '@/utils/delivery-address'
 import { buildGoogleMapsRouteUrl, buildGoogleMapsUrl, formatFullAddress, formatMapsAddress } from '@/utils/maps'
 import {
   estimateRouteDistanceKm,
@@ -144,7 +145,7 @@ export function RoutePlannerModal({
     if (draftPackages.length === 0) return
 
     window.open(
-      buildGoogleMapsRouteUrl(draftPackages.map((item) => formatMapsAddress(item))),
+      buildGoogleMapsRouteUrl(draftPackages.map((item) => formatPackageMapsAddress(item))),
       '_blank',
       'noopener,noreferrer',
     )

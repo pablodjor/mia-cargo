@@ -28,8 +28,8 @@ import { packagesService } from '@/services/packages.service'
 import { settingsService } from '@/services/settings.service'
 import { vehiclesService } from '@/services/vehicles.service'
 import type { Courier, Delivery, Driver, Package } from '@/types'
-import { buildGoogleMapsRouteUrl, buildGoogleMapsUrl, formatFullAddress } from '@/utils/maps'
-import { formatStopAddress } from '@/utils/delivery-address'
+import { buildGoogleMapsRouteUrl, buildGoogleMapsUrl, formatMapsAddress } from '@/utils/maps'
+import { formatStopMapsAddress } from '@/utils/delivery-address'
 import {
   buildDeliveryReportContext,
   canDownloadDeliveryReport,
@@ -97,7 +97,7 @@ function openDeliveryRoute(delivery: Delivery, packages: Package[], courier?: Co
       toast.error('Este reparto no tiene correo configurado')
       return
     }
-    window.open(buildGoogleMapsUrl(formatFullAddress(courier)), '_blank', 'noopener,noreferrer')
+    window.open(buildGoogleMapsUrl(formatMapsAddress(courier)), '_blank', 'noopener,noreferrer')
     return
   }
 
@@ -110,7 +110,7 @@ function openDeliveryRoute(delivery: Delivery, packages: Package[], courier?: Co
   const addresses = source
     .map((stop) => {
       const pkg = byId.get(stop.packageId)
-      return pkg ? formatStopAddress(pkg, stop) : null
+      return pkg ? formatStopMapsAddress(pkg, stop) : null
     })
     .filter((address): address is string => Boolean(address))
 

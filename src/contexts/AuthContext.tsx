@@ -14,7 +14,7 @@ import { storageService } from '@/services/storage.service'
 interface AuthContextValue {
   session: Session | null
   loading: boolean
-  login: (email: string, password: string) => Promise<Session>
+  login: (username: string, password: string) => Promise<Session>
   loginAsRole: (role: UserRole) => Promise<Session>
   logout: () => Promise<void>
   refresh: () => void
@@ -48,8 +48,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       session,
       loading,
-      login: async (email, password) => {
-        const next = await authService.login(email, password)
+      login: async (username, password) => {
+        const next = await authService.login(username, password)
         setSession(next)
         return next
       },

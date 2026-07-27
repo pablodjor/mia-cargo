@@ -12,12 +12,15 @@ import { PACKAGE_STATUS_LABELS } from '@/constants/labels'
 import type { DeliveryAddressOverride, DeliveryChannel, DeliveryStop, Package } from '@/types'
 import { formatDateTime } from '@/utils/date'
 import {
+  formatPackageMapsAddress,
   formatPackageAddress,
   formatStopAddress,
+  formatOverrideMapsAddress,
   formatStopMapsAddress,
   hasAlternateDeliveryAddress,
   isCompleteDeliveryAddress,
 } from '@/utils/delivery-address'
+import { buildGoogleMapsUrl } from '@/utils/maps'
 import { formatAddressLine } from '@/utils/address-details'
 import { cn } from '@/utils/cn'
 
@@ -62,10 +65,10 @@ function resolveMapsAddress(
   locked: boolean,
 ): string {
   if (override && locked && isCompleteDeliveryAddress(override)) {
-    return formatAddressLine(override)
+    return formatOverrideMapsAddress(override, pkg.destinationType)
   }
   if (stop) return formatStopMapsAddress(pkg, stop)
-  return formatPackageAddress(pkg)
+  return formatPackageMapsAddress(pkg)
 }
 
 export function DeliveryFormSelectedPackages({
@@ -275,11 +278,7 @@ export function DeliveryFormSelectedPackages({
                   </>
                 }
                 onMaps={() =>
-                  window.open(
-                    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapsAddress)}`,
-                    '_blank',
-                    'noopener,noreferrer',
-                  )
+                  window.open(buildGoogleMapsUrl(mapsAddress), '_blank', 'noopener,noreferrer')
                 }
                 onMarkDelivered={() => onMarkDelivered(stop)}
                 onMarkFailed={() => onMarkFailed(stop)}

@@ -1,6 +1,8 @@
 import type { DestinationType, Package, PackageStatus, PaymentStatus } from '@/types'
 import { calculatePackageTotals } from '@/utils/money'
+import { formatFullName } from '@/utils/person-name'
 import { createCorporateClientPackages } from './corporate-clients.mock'
+import { withPackageOwner } from './legacy-name'
 import { personsMock } from './persons.mock'
 
 interface SeedAddress {
@@ -394,11 +396,39 @@ function createPackages(): Package[] {
 
     const person = personsMock[index % personsMock.length]
 
-    const pkg: Package = {
+    const failedAttempts =
+      n === 5
+        ? (() => {
+            const firstAttempt = new Date(updated)
+            firstAttempt.setDate(firstAttempt.getDate() - 2)
+            return [
+              {
+                id: 'attempt_demo_2',
+                attemptedAt: updated.toISOString(),
+                outcome: 'not_delivered' as const,
+                failureReasonId: 'fr_1',
+                failureNotes: 'Nadie en domicilio',
+                userName: 'Carlos Méndez',
+                deliveryCode: 'REP-PLACEHOLDER',
+              },
+              {
+                id: 'attempt_demo_1',
+                attemptedAt: firstAttempt.toISOString(),
+                outcome: 'rescheduled' as const,
+                failureReasonId: 'fr_6',
+                failureNotes: 'Cliente pide entrega mañana',
+                userName: 'Carlos Méndez',
+                deliveryCode: 'REP-PLACEHOLDER',
+              },
+            ]
+          })()
+        : undefined
+
+    return withPackageOwner({
       id: `pkg_${String(n).padStart(3, '0')}`,
       shCode: `SH${10000 + n}`,
       personId: person?.id,
-      ownerName: person?.name ?? owners[index % owners.length] ?? 'Cliente Demo',
+      ownerName: person ? formatFullName(person) : owners[index % owners.length] ?? 'Cliente Demo',
       ownerPhone: person?.phone ?? phones[index % phones.length] ?? '+54 11 5000-0000',
       weight,
       address: unit ? `${addr.address}, ${unit}` : addr.address,
@@ -415,34 +445,8 @@ function createPackages(): Package[] {
       notes: index % 7 === 0 ? 'Entregar en horario laboral' : undefined,
       createdAt: created.toISOString(),
       updatedAt: updated.toISOString(),
-    }
-
-    if (n === 5) {
-      const firstAttempt = new Date(updated)
-      firstAttempt.setDate(firstAttempt.getDate() - 2)
-      pkg.failedAttempts = [
-        {
-          id: 'attempt_demo_2',
-          attemptedAt: updated.toISOString(),
-          outcome: 'not_delivered',
-          failureReasonId: 'fr_1',
-          failureNotes: 'Nadie en domicilio',
-          userName: 'Carlos Méndez',
-          deliveryCode: 'REP-PLACEHOLDER',
-        },
-        {
-          id: 'attempt_demo_1',
-          attemptedAt: firstAttempt.toISOString(),
-          outcome: 'rescheduled',
-          failureReasonId: 'fr_6',
-          failureNotes: 'Cliente pide entrega mañana',
-          userName: 'Carlos Méndez',
-          deliveryCode: 'REP-PLACEHOLDER',
-        },
-      ]
-    }
-
-    return pkg
+      ...(failedAttempts ? { failedAttempts } : {}),
+    })
   })
 }
 

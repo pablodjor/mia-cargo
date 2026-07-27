@@ -18,6 +18,14 @@ import type {
 import { migratePackageFailedAttempts } from '@/utils/package-attempts'
 import { normalizePackageDeliveryLink } from '@/utils/package-delivery-info'
 import { calculatePackageTotals } from '@/utils/money'
+import {
+  formatFullName,
+  getNameInitials,
+  normalizeUsername,
+  resolveNameFields,
+  resolvePackageOwnerFields,
+  usernameFromEmail,
+} from '@/utils/person-name'
 import { bumpStorageRevision } from '@/utils/storage-events'
 import {
   fetchRemoteDatabase,
@@ -56,6 +64,43 @@ function getStoredVersion(): number | null {
   return Number.isFinite(parsed) ? parsed : null
 }
 
+function normalizeUser(user: User): User {
+  const names = resolveNameFields(user)
+  const username = user.username?.trim()
+    ? normalizeUsername(user.username)
+    : usernameFromEmail((user as User & { email?: string }).email) ?? normalizeUsername(names.firstName)
+  return {
+    ...user,
+    username,
+    firstName: names.firstName,
+    lastName: names.lastName,
+    name: names.name,
+    email: user.email?.trim() || undefined,
+    avatarInitials: user.avatarInitials || getNameInitials(names),
+  }
+}
+
+function normalizePerson(person: Person): Person {
+  const names = resolveNameFields(person)
+  return {
+    ...person,
+    firstName: names.firstName,
+    lastName: names.lastName,
+    name: names.name,
+  }
+}
+
+function normalizeDriver(driver: Driver): Driver {
+  const names = resolveNameFields(driver)
+  return {
+    ...driver,
+    firstName: names.firstName,
+    lastName: names.lastName,
+    name: names.name,
+    email: driver.email?.trim() || undefined,
+  }
+}
+
 function normalizePackage(pkg: Package): Package {
   const pricePerKgUsd =
     typeof pkg.pricePerKgUsd === 'number' && pkg.pricePerKgUsd > 0 ? pkg.pricePerKgUsd : 8
@@ -73,9 +118,14 @@ function normalizePackage(pkg: Package): Package {
   const status =
     (pkg.status as string) === 'returned' ? ('not_delivered' as const) : pkg.status
 
+  const owner = resolvePackageOwnerFields(pkg)
+
   return {
     ...pkg,
     status,
+    ownerFirstName: owner.ownerFirstName,
+    ownerLastName: owner.ownerLastName,
+    ownerName: owner.ownerName,
     pricePerKgUsd,
     usdRate,
     totalUsd: typeof pkg.totalUsd === 'number' ? pkg.totalUsd : totals.totalUsd,
@@ -108,6 +158,10 @@ function normalizeDelivery(delivery: Delivery): Delivery {
 function normalizeSnapshot(snapshot: DatabaseSnapshot): DatabaseSnapshot {
   return {
     ...snapshot,
+    version: MOCK_DATABASE_VERSION,
+    users: snapshot.users.map(normalizeUser),
+    persons: snapshot.persons.map(normalizePerson),
+    drivers: snapshot.drivers.map(normalizeDriver),
     packages: snapshot.packages.map(normalizePackage).map(normalizePackageDeliveryLink),
     deliveries: snapshot.deliveries.map(normalizeDelivery),
   }
@@ -190,6 +244,9 @@ export const storageService = {
       if (remote?.snapshot) {
         applySnapshot(remote.snapshot)
         remoteUpdatedAt = remote.updatedAt
+        if (remoteCache && remoteCache.version !== MOCK_DATABASE_VERSION) {
+          await flushRemotePush()
+        }
       } else {
         applySnapshot(createInitialDatabase())
         await flushRemotePush()
@@ -219,6 +276,12 @@ export const storageService = {
       if (!remoteCache) {
         applySnapshot(createInitialDatabase())
       }
+      return this.getSnapshot()
+    }
+
+    if (this.hasData() && !this.isCompatible()) {
+      const snapshot = this.getSnapshot()
+      this.saveSnapshot(normalizeSnapshot(snapshot))
       return this.getSnapshot()
     }
 
@@ -426,7 +489,20 @@ export const storageService = {
   },
 
   getSession(): Session | null {
-    return readJson<Session>(STORAGE_KEYS.session)
+    const session = readJson<Session>(STORAGE_KEYS.session)
+    if (!session) return null
+    const names = resolveNameFields(session)
+    const username =
+      session.username?.trim() ||
+      usernameFromEmail(session.email) ||
+      normalizeUsername(names.firstName)
+    return {
+      ...session,
+      username: normalizeUsername(username),
+      firstName: session.firstName ?? names.firstName,
+      lastName: session.lastName ?? names.lastName,
+      name: session.name ?? formatFullName(names),
+    }
   },
   setSession(session: Session): void {
     writeJson(STORAGE_KEYS.session, session)

@@ -1,8 +1,10 @@
 import type { Person } from '@/types'
+import { formatFullName } from '@/utils/person-name'
 
 type PersonDuplicateInput = Pick<
   Person,
-  | 'name'
+  | 'firstName'
+  | 'lastName'
   | 'phone'
   | 'address'
   | 'city'
@@ -37,7 +39,7 @@ function normalizePhone(value: string | undefined): string {
 
 function toPersonComparable(input: PersonDuplicateInput): PersonComparable {
   return {
-    name: normalizeText(input.name),
+    name: normalizeText(formatFullName(input)),
     phone: normalizePhone(input.phone),
     address: normalizeText(input.address),
     city: normalizeText(input.city),

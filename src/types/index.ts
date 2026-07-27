@@ -39,23 +39,32 @@ export type HistoryEntity =
 
 export interface User {
   id: string
-  name: string
-  email: string
+  username: string
+  firstName: string
+  lastName: string
+  /** Contacto opcional */
+  email?: string
   password: string
   role: UserRole
   phone?: string
   driverId?: string
   avatarInitials: string
   active: boolean
+  /** Nombre completo (nombre + apellido) */
+  name: string
 }
 
 export interface Session {
   userId: string
-  email: string
+  username: string
+  firstName: string
+  lastName: string
   name: string
   role: UserRole
   driverId?: string
   loggedAt: string
+  /** Legacy */
+  email?: string
 }
 
 export interface PackageFailedAttempt {
@@ -70,7 +79,8 @@ export interface PackageFailedAttempt {
 
 export interface Person {
   id: string
-  name: string
+  firstName: string
+  lastName: string
   phone: string
   address: string
   city: string
@@ -84,6 +94,8 @@ export interface Person {
   status: EntityStatus
   createdAt: string
   updatedAt: string
+  /** Nombre completo (nombre + apellido) */
+  name: string
 }
 
 export type AddressPlaceType = 'home' | 'work' | 'other'
@@ -98,6 +110,8 @@ export interface Package {
   id: string
   shCode: string
   personId?: string
+  ownerFirstName: string
+  ownerLastName: string
   ownerName: string
   ownerPhone: string
   weight: number
@@ -176,15 +190,18 @@ export interface Courier {
 
 export interface Driver {
   id: string
-  name: string
+  firstName: string
+  lastName: string
   dni: string
   phone: string
-  email: string
+  email?: string
   status: EntityStatus
   habitualVehicleId?: string
   deliveryCount: number
   createdAt: string
   updatedAt: string
+  /** Nombre completo (nombre + apellido) */
+  name: string
 }
 
 export interface Vehicle {

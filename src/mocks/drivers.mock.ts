@@ -1,13 +1,14 @@
 import type { Driver } from '@/types'
+import { withDriverNames } from './legacy-name'
 
-export const driversMock: Driver[] = [
+const rawDrivers = [
   {
     id: 'drv_1',
     name: 'Carlos Méndez',
     dni: '28456789',
     phone: '+54 11 4567-8901',
     email: 'chofer@miacargo.com.ar',
-    status: 'active',
+    status: 'active' as const,
     habitualVehicleId: 'veh_1',
     deliveryCount: 128,
     createdAt: '2025-11-01T10:00:00.000Z',
@@ -19,7 +20,7 @@ export const driversMock: Driver[] = [
     dni: '31234567',
     phone: '+54 11 4789-0123',
     email: 'lucia.fernandez@miacargo.com.ar',
-    status: 'active',
+    status: 'active' as const,
     habitualVehicleId: 'veh_2',
     deliveryCount: 96,
     createdAt: '2025-12-15T10:00:00.000Z',
@@ -31,10 +32,12 @@ export const driversMock: Driver[] = [
     dni: '29876543',
     phone: '+54 11 4345-6789',
     email: 'martin.rivas@miacargo.com.ar',
-    status: 'active',
+    status: 'active' as const,
     habitualVehicleId: 'veh_3',
     deliveryCount: 74,
     createdAt: '2026-01-20T10:00:00.000Z',
     updatedAt: '2026-07-15T10:00:00.000Z',
   },
 ]
+
+export const driversMock: Driver[] = rawDrivers.map((driver) => withDriverNames(driver))

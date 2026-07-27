@@ -1,4 +1,4 @@
-import { Bike, Mail, Phone, Truck } from 'lucide-react'
+import { Bike, Mail, Phone, Truck, User } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
 import { PageLoader } from '@/components/ui/PageLoader'
@@ -51,15 +51,24 @@ export default function DriverProfilePage() {
         </div>
       </Card>
 
-      <Card title="Contacto">
+      <Card title="Acceso y contacto">
         <dl className="space-y-4">
           <div>
             <dt className="flex items-center gap-2 text-sm text-text-secondary">
-              <Mail className="h-4 w-4" />
-              Correo
+              <User className="h-4 w-4" />
+              Usuario
             </dt>
-            <dd className="mt-1 font-medium text-text-primary">{session?.email ?? '—'}</dd>
+            <dd className="mt-1 font-medium text-text-primary">@{session?.username ?? '—'}</dd>
           </div>
+          {(session?.email ?? driver?.email) ? (
+            <div>
+              <dt className="flex items-center gap-2 text-sm text-text-secondary">
+                <Mail className="h-4 w-4" />
+                Email
+              </dt>
+              <dd className="mt-1 font-medium text-text-primary">{session?.email ?? driver?.email}</dd>
+            </div>
+          ) : null}
           <div>
             <dt className="flex items-center gap-2 text-sm text-text-secondary">
               <Phone className="h-4 w-4" />

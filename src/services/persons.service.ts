@@ -6,10 +6,12 @@ import {
   computePersonPackageStats,
   getPackagesForPerson,
 } from '@/utils/person-stats'
+import { formatFullName } from '@/utils/person-name'
+import { normalizeDestinationLocation } from '@/utils/destination-location'
 import { historyService } from './history.service'
 import { storageService } from './storage.service'
 
-export type PersonInput = Omit<Person, 'id' | 'createdAt' | 'updatedAt'>
+export type PersonInput = Omit<Person, 'id' | 'createdAt' | 'updatedAt' | 'name'>
 
 export const personsService = {
   async getAll(): Promise<Person[]> {
@@ -55,8 +57,10 @@ export const personsService = {
     await delay()
     storageService.seedIfNeeded()
     const now = new Date().toISOString()
+    const normalized = normalizeDestinationLocation(input)
     const person: Person = {
-      ...input,
+      ...normalized,
+      name: formatFullName(normalized),
       id: createId('per'),
       createdAt: now,
       updatedAt: now,
@@ -81,9 +85,11 @@ export const personsService = {
     const current = persons[index]
     if (!current) throw new Error('Cliente no encontrado')
 
+    const merged = normalizeDestinationLocation({ ...current, ...input })
     const updated: Person = {
       ...current,
-      ...input,
+      ...merged,
+      name: formatFullName(merged),
       id: current.id,
       updatedAt: new Date().toISOString(),
     }

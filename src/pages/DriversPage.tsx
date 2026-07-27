@@ -22,6 +22,7 @@ import { packagesService } from '@/services/packages.service'
 import { settingsService } from '@/services/settings.service'
 import { vehiclesService } from '@/services/vehicles.service'
 import type { Driver } from '@/types'
+import { formatFullName } from '@/utils/person-name'
 import { sortRows, toggleTableSort } from '@/utils/table-sort'
 
 const DEFAULT_SORT: TableSortState = { key: 'name', direction: 'asc' }
@@ -33,7 +34,7 @@ function getDriverSortValue(
 ): string | number {
   switch (key) {
     case 'name':
-      return driver.name
+      return formatFullName(driver)
     case 'contact':
       return `${driver.phone} ${driver.email}`
     case 'status':
@@ -41,7 +42,7 @@ function getDriverSortValue(
     case 'count':
       return deliveryCountByDriver.get(driver.id) ?? 0
     default:
-      return driver.name
+      return formatFullName(driver)
   }
 }
 
@@ -96,7 +97,8 @@ export default function DriversPage() {
   const form = useForm<DriverFormValues>({
     resolver: zodResolver(driverSchema),
     defaultValues: {
-      name: '',
+      firstName: '',
+      lastName: '',
       dni: '',
       phone: '',
       email: '',
@@ -110,15 +112,17 @@ export default function DriversPage() {
     form.reset(
       driver
         ? {
-            name: driver.name,
+            firstName: driver.firstName,
+            lastName: driver.lastName,
             dni: driver.dni,
             phone: driver.phone,
-            email: driver.email,
+            email: driver.email ?? '',
             status: driver.status,
             habitualVehicleId: driver.habitualVehicleId ?? '',
           }
         : {
-            name: '',
+            firstName: '',
+            lastName: '',
             dni: '',
             phone: '',
             email: '',
@@ -141,7 +145,7 @@ export default function DriversPage() {
   })
 
   const columns: TableColumn<Driver>[] = [
-    { key: 'name', header: 'Chofer', sortable: true, render: (driver) => <strong>{driver.name}</strong> },
+    { key: 'name', header: 'Chofer', sortable: true, render: (driver) => <strong>{formatFullName(driver)}</strong> },
     {
       key: 'contact',
       header: 'Contacto',
@@ -224,10 +228,13 @@ export default function DriversPage() {
         footer={<Button onClick={save}>Guardar</Button>}
       >
         <form className="grid gap-3" onSubmit={save}>
-          <Input label="Nombre" error={form.formState.errors.name?.message} {...form.register('name')} />
+          <div className="grid gap-3 md:grid-cols-2">
+            <Input label="Nombre" error={form.formState.errors.firstName?.message} {...form.register('firstName')} />
+            <Input label="Apellido" error={form.formState.errors.lastName?.message} {...form.register('lastName')} />
+          </div>
           <Input label="DNI" error={form.formState.errors.dni?.message} {...form.register('dni')} />
           <Input label="Teléfono" error={form.formState.errors.phone?.message} {...form.register('phone')} />
-          <Input label="Email" error={form.formState.errors.email?.message} {...form.register('email')} />
+          <Input label="Email (opcional)" error={form.formState.errors.email?.message} {...form.register('email')} />
           <Select
             label="Estado"
             options={[

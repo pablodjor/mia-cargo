@@ -1,9 +1,10 @@
 import type { Person } from '@/types'
 import { corporateClientsMock } from './corporate-clients.mock'
+import { withPersonNames } from './legacy-name'
 
 const createdAt = '2025-06-01T10:00:00.000Z'
 
-const individualPersonsMock: Person[] = [
+const individualPersonsRaw = [
   {
     id: 'per_001',
     name: 'Juan Pérez',
@@ -266,5 +267,9 @@ const individualPersonsMock: Person[] = [
     updatedAt: createdAt,
   },
 ]
+
+const individualPersonsMock: Person[] = individualPersonsRaw.map((person) =>
+  withPersonNames(person),
+) as Person[]
 
 export const personsMock: Person[] = [...individualPersonsMock, ...corporateClientsMock]

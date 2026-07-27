@@ -1,20 +1,11 @@
 import { delay } from '@/utils/delay'
-import type { Session, User, UserRole } from '@/types'
+import type { Session, UserRole } from '@/types'
+import { normalizeUsername } from '@/utils/person-name'
+import { toSession } from '@/utils/session'
 import { storageService } from './storage.service'
 
-function toSession(user: User): Session {
-  return {
-    userId: user.id,
-    email: user.email,
-    name: user.name,
-    role: user.role,
-    driverId: user.driverId,
-    loggedAt: new Date().toISOString(),
-  }
-}
-
 export const authService = {
-  async getUsers(): Promise<User[]> {
+  async getUsers() {
     await delay()
     storageService.seedIfNeeded()
     return storageService.getUsers()
@@ -30,12 +21,18 @@ export const authService = {
     return this.getSessionSync()
   },
 
-  async login(email: string, password: string): Promise<Session> {
+  async login(username: string, password: string): Promise<Session> {
     await delay()
     storageService.seedIfNeeded()
+    const normalized = normalizeUsername(username)
     const user = storageService
       .getUsers()
-      .find((item) => item.email.toLowerCase() === email.toLowerCase() && item.password === password && item.active)
+      .find(
+        (item) =>
+          normalizeUsername(item.username) === normalized &&
+          item.password === password &&
+          item.active,
+      )
 
     if (!user) {
       throw new Error('Credenciales inválidas')

@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Download, Package, Pencil, UserCheck, UserX } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -28,7 +28,8 @@ import { personsService, type PersonInput } from '@/services/persons.service'
 import { deliveriesService } from '@/services/deliveries.service'
 import { driversService } from '@/services/drivers.service'
 import { couriersService } from '@/services/couriers.service'
-import type { Person, PersonSummary } from '@/types'
+import type { DestinationType, Person, PersonSummary } from '@/types'
+import { getDestinationLocationDefaults } from '@/utils/destination-location'
 import { formatDateTime } from '@/utils/date'
 import { formatAddressExtrasSummary, formatAddressLine, streetAddressWithUnit } from '@/utils/address-details'
 import { formatUsd } from '@/utils/money'
@@ -38,15 +39,17 @@ import {
 } from '@/utils/person-report-export'
 import { getPackagesForPerson } from '@/utils/person-stats'
 import { findDuplicatePersons } from '@/utils/person-duplicate'
+import { formatFullName } from '@/utils/person-name'
 
 const destinations = Object.entries(DESTINATION_LABELS).map(([value, label]) => ({ value, label }))
 
 const emptyValues: PersonFormValues = {
-  name: '',
+  firstName: '',
+  lastName: '',
   phone: '',
   address: '',
-  city: '',
-  province: '',
+  city: 'Buenos Aires',
+  province: 'CABA',
   postalCode: '',
   destinationType: 'caba',
   status: 'active',
@@ -66,7 +69,7 @@ function compareValues(a: string | number, b: string | number) {
 function getSummarySortValue(row: PersonSummary, key: string): string | number {
   switch (key) {
     case 'name':
-      return row.person.name
+      return formatFullName(row.person)
     case 'phone':
       return row.person.phone
     case 'address':
@@ -102,7 +105,7 @@ function getSummarySortValue(row: PersonSummary, key: string): string | number {
     case 'status':
       return row.person.status
     default:
-      return row.person.name
+      return formatFullName(row.person)
   }
 }
 
@@ -147,12 +150,16 @@ export default function PersonsPage() {
     defaultValues: emptyValues,
   })
 
+  const destinationType = form.watch('destinationType')
+  const previousDestinationType = useRef<DestinationType | undefined>(undefined)
+
   useEffect(() => {
     if (editing === undefined) return
     form.reset(
       editing
         ? {
-            name: editing.name,
+            firstName: editing.firstName,
+            lastName: editing.lastName,
             phone: editing.phone,
             address: editing.address,
             city: editing.city,
@@ -167,7 +174,22 @@ export default function PersonsPage() {
           }
         : emptyValues,
     )
+    previousDestinationType.current = editing?.destinationType ?? 'caba'
   }, [editing, form])
+
+  useEffect(() => {
+    if (editing === undefined) return
+    const previous = previousDestinationType.current
+    if (previous === destinationType) return
+    previousDestinationType.current = destinationType
+    const defaults = getDestinationLocationDefaults(destinationType, previous)
+    if (defaults.city !== undefined) {
+      form.setValue('city', defaults.city, { shouldValidate: true, shouldDirty: true })
+    }
+    if (defaults.province !== undefined) {
+      form.setValue('province', defaults.province, { shouldValidate: true, shouldDirty: true })
+    }
+  }, [destinationType, editing, form])
 
   const filtered = useMemo(() => {
     const search = query.search.trim().toLowerCase()
@@ -178,7 +200,7 @@ export default function PersonsPage() {
       if (query.hasPackages === 'without' && stats.packageCount > 0) return false
       if (!search) return true
       const haystack = [
-        person.name,
+        formatFullName(person),
         person.phone,
         person.address,
         person.addressUnit,
@@ -295,7 +317,7 @@ export default function PersonsPage() {
       className: 'min-w-[220px]',
       render: ({ person }) => (
         <div>
-          <strong className="text-text-primary">{person.name}</strong>
+          <strong className="text-text-primary">{formatFullName(person)}</strong>
           <p className="text-sm text-text-secondary">{person.phone}</p>
         </div>
       ),
@@ -547,7 +569,10 @@ export default function PersonsPage() {
       >
         <form className="grid gap-3" onSubmit={(event) => void save(event)}>
           <div className="grid gap-3 md:grid-cols-2">
-            <Input label="Nombre" error={form.formState.errors.name?.message} {...form.register('name')} />
+          <div className="grid gap-3 md:grid-cols-2">
+            <Input label="Nombre" error={form.formState.errors.firstName?.message} {...form.register('firstName')} />
+            <Input label="Apellido" error={form.formState.errors.lastName?.message} {...form.register('lastName')} />
+          </div>
             <Input label="Teléfono" error={form.formState.errors.phone?.message} {...form.register('phone')} />
           </div>
           <Input label="Dirección" error={form.formState.errors.address?.message} {...form.register('address')} />
@@ -585,7 +610,12 @@ export default function PersonsPage() {
             />
           </div>
           <div className="grid gap-3 md:grid-cols-2">
-            <Select label="Zona" options={destinations} {...form.register('destinationType')} />
+            <Select
+              label="Zona de destino"
+              options={destinations}
+              error={form.formState.errors.destinationType?.message}
+              {...form.register('destinationType')}
+            />
             <Select
               label="Estado"
               options={[
@@ -604,7 +634,7 @@ export default function PersonsPage() {
         title="Cliente duplicado"
         description={
           duplicateConfirm
-            ? `Ya existe ${duplicateConfirm.matches.length === 1 ? 'un cliente' : `${duplicateConfirm.matches.length} clientes`} con los mismos datos (${duplicateConfirm.matches.map((person) => `${person.name} · ${person.phone}`).join('; ')}). ¿Querés continuar igual?`
+            ? `Ya existe ${duplicateConfirm.matches.length === 1 ? 'un cliente' : `${duplicateConfirm.matches.length} clientes`} con los mismos datos (${duplicateConfirm.matches.map((person) => `${formatFullName(person)} · ${person.phone}`).join('; ')}). ¿Querés continuar igual?`
             : ''
         }
         confirmLabel="Sí, guardar igual"

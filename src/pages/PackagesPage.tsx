@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { RefreshCw, Eye, Pencil, RefreshCcw, History, Ban } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -50,10 +50,12 @@ import { driversService } from '@/services/drivers.service'
 import { packagesService } from '@/services/packages.service'
 import { personsService } from '@/services/persons.service'
 import type { OfficialUsdRate } from '@/types/exchange'
-import type { Package, PackageStatus, PaymentStatus } from '@/types'
+import type { DestinationType, Package, PackageStatus, PaymentStatus } from '@/types'
+import { getDestinationLocationDefaults } from '@/utils/destination-location'
 import { formatDateTime, formatDeliveryDateDisplay } from '@/utils/date'
 import { calculatePackageTotals, formatArs, formatUsd } from '@/utils/money'
 import { applyPersonToPackageFields } from '@/utils/person-stats'
+import { formatFullName, getPackageOwnerName } from '@/utils/person-name'
 import {
   applyPersonAddressOption,
   CUSTOM_ADDRESS_KEY,
@@ -101,7 +103,7 @@ function getPackageSortValue(
     case 'code':
       return pkg.shCode
     case 'owner':
-      return pkg.ownerName
+      return getPackageOwnerName(pkg)
     case 'destination':
       return `${pkg.city}, ${pkg.province}`
     case 'price':
@@ -122,12 +124,13 @@ function createBlank(rate: number): PackageFormValues {
   return {
     personId: '',
     shCode: '',
-    ownerName: '',
+    ownerFirstName: '',
+    ownerLastName: '',
     ownerPhone: '',
     weight: 1,
     address: '',
-    city: '',
-    province: '',
+    city: 'Buenos Aires',
+    province: 'CABA',
     postalCode: '',
     destinationType: 'caba',
     status: 'pending',
@@ -184,6 +187,23 @@ export default function PackagesPage() {
     defaultValues: createBlank(1501),
   })
 
+  const destinationType = form.watch('destinationType')
+  const previousDestinationType = useRef<DestinationType | undefined>(undefined)
+
+  useEffect(() => {
+    if (editing === undefined) return
+    const previous = previousDestinationType.current
+    if (previous === destinationType) return
+    previousDestinationType.current = destinationType
+    const defaults = getDestinationLocationDefaults(destinationType, previous)
+    if (defaults.city !== undefined) {
+      form.setValue('city', defaults.city, { shouldValidate: true, shouldDirty: true })
+    }
+    if (defaults.province !== undefined) {
+      form.setValue('province', defaults.province, { shouldValidate: true, shouldDirty: true })
+    }
+  }, [destinationType, editing, form])
+
   const weight = form.watch('weight') || 0
   const pricePerKgUsd = form.watch('pricePerKgUsd') || 0
   const usdRate = form.watch('usdRate') || 0
@@ -220,7 +240,7 @@ export default function PackagesPage() {
       packages.filter(
         (item) =>
           (!query.sh || item.shCode.includes(query.sh)) &&
-          (!query.name || item.ownerName.toLowerCase().includes(query.name.toLowerCase())) &&
+          (!query.name || getPackageOwnerName(item).toLowerCase().includes(query.name.toLowerCase())) &&
           (!query.status || item.status === query.status) &&
           (!query.destination || item.destinationType === query.destination) &&
           (!query.province || item.province.toLowerCase().includes(query.province.toLowerCase())),
@@ -252,11 +272,13 @@ export default function PackagesPage() {
     setEditing(item ?? null)
     setRegisterPickupAtDesk(false)
     setAddressEditorOpen(false)
+    previousDestinationType.current = item?.destinationType ?? 'caba'
     if (item) {
       form.reset({
         personId: item.personId ?? '',
         shCode: item.shCode,
-        ownerName: item.ownerName,
+        ownerFirstName: item.ownerFirstName,
+        ownerLastName: item.ownerLastName,
         ownerPhone: item.ownerPhone,
         weight: item.weight,
         address: item.address,
@@ -285,6 +307,7 @@ export default function PackagesPage() {
     } else {
       form.reset(createBlank(rate.sell))
       setSelectedAddressKey(PERSON_DEFAULT_ADDRESS_KEY)
+      previousDestinationType.current = 'caba'
     }
   }
 
@@ -364,7 +387,8 @@ export default function PackagesPage() {
   const applyPersonFields = (person: (typeof persons)[number], keepCustomAddress = false) => {
     const fields = applyPersonToPackageFields(person)
     form.setValue('personId', person.id, { shouldDirty: true })
-    form.setValue('ownerName', fields.ownerName, { shouldValidate: true })
+    form.setValue('ownerFirstName', fields.ownerFirstName, { shouldValidate: true })
+    form.setValue('ownerLastName', fields.ownerLastName, { shouldValidate: true })
     form.setValue('ownerPhone', fields.ownerPhone, { shouldValidate: true })
     if (!keepCustomAddress) {
       form.setValue('address', fields.address, { shouldValidate: true })
@@ -770,7 +794,7 @@ export default function PackagesPage() {
       sortable: true,
       render: (p) => <PackageShCodeButton pkg={p} />,
     },
-    { key: 'owner', header: 'Destinatario', sortable: true, render: (p) => p.ownerName },
+    { key: 'owner', header: 'Destinatario', sortable: true, render: (p) => getPackageOwnerName(p) },
     {
       key: 'destination',
       header: 'Destino',
@@ -936,7 +960,7 @@ export default function PackagesPage() {
                 label="Cliente registrado"
                 options={activePersons.map((person) => ({
                   value: person.id,
-                  label: `${person.name} · ${person.phone}`,
+                  label: `${formatFullName(person)} · ${person.phone}`,
                 }))}
                 placeholder="Completar manualmente"
                 value={selectedPersonId ?? ''}
@@ -958,9 +982,14 @@ export default function PackagesPage() {
             {!usingLinkedPerson ? (
               <>
                 <Input
-                  label="Nombre del propietario"
-                  error={form.formState.errors.ownerName?.message}
-                  {...form.register('ownerName')}
+                  label="Nombre del destinatario"
+                  error={form.formState.errors.ownerFirstName?.message}
+                  {...form.register('ownerFirstName')}
+                />
+                <Input
+                  label="Apellido del destinatario"
+                  error={form.formState.errors.ownerLastName?.message}
+                  {...form.register('ownerLastName')}
                 />
                 <Input
                   label="Teléfono"
@@ -999,7 +1028,7 @@ export default function PackagesPage() {
                   {...form.register('postalCode')}
                 />
                 <Select
-                  label="Tipo de destino"
+                  label="Zona de destino"
                   options={destinations}
                   error={form.formState.errors.destinationType?.message}
                   {...form.register('destinationType')}

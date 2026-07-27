@@ -1,6 +1,6 @@
 import type { DeliveryAddressOverride, DeliveryStop, Package } from '@/types'
 import { formatAddressLine, streetAddressWithUnit } from '@/utils/address-details'
-import { formatFullAddress } from '@/utils/maps'
+import { formatMapsAddress } from '@/utils/maps'
 
 export function getStopAddressParts(
   pkg: Package,
@@ -34,13 +34,37 @@ export function formatPackageAddress(pkg: Package): string {
   })
 }
 
+export function formatPackageMapsAddress(pkg: Package): string {
+  return formatMapsAddress({
+    address: streetAddressWithUnit(pkg.address, pkg.addressUnit),
+    city: pkg.city,
+    province: pkg.province,
+    postalCode: pkg.postalCode,
+    destinationType: pkg.destinationType,
+  })
+}
+
+export function formatOverrideMapsAddress(
+  override: DeliveryAddressOverride,
+  destinationType?: Package['destinationType'],
+): string {
+  return formatMapsAddress({
+    address: streetAddressWithUnit(override.address, override.unit),
+    city: override.city,
+    province: override.province,
+    postalCode: override.postalCode,
+    destinationType,
+  })
+}
+
 export function formatStopMapsAddress(pkg: Package, stop: DeliveryStop): string {
   const parts = getStopAddressParts(pkg, stop)
-  return formatFullAddress({
+  return formatMapsAddress({
     address: streetAddressWithUnit(parts.address, parts.unit),
     city: parts.city,
     province: parts.province,
     postalCode: parts.postalCode,
+    destinationType: pkg.destinationType,
   })
 }
 

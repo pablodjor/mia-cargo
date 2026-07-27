@@ -25,14 +25,14 @@ export function LoginPage() {
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: 'admin@miacargo.com.ar',
+      username: 'admin',
       password: 'demo123',
     },
   })
 
   const onSubmit = handleSubmit(async (values) => {
     try {
-      const session = await login(values.email, values.password)
+      const session = await login(values.username, values.password)
       toast.success(`Bienvenido, ${session.name}`)
       navigate(getHomePath(session.role))
     } catch (error) {
@@ -81,11 +81,11 @@ export function LoginPage() {
         <Card className="animate-slide-up border-0 shadow-2xl">
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-text-primary">Iniciar sesión</h2>
-            <p className="mt-1 text-sm text-text-secondary">Ingresá con tu email y contraseña.</p>
+            <p className="mt-1 text-sm text-text-secondary">Ingresá con tu usuario y contraseña.</p>
           </div>
 
           <form className="space-y-4" onSubmit={onSubmit}>
-            <Input label="Email" type="email" error={errors.email?.message} {...register('email')} />
+            <Input label="Usuario" autoComplete="username" error={errors.username?.message} {...register('username')} />
             <Input
               label="Contraseña"
               type="password"

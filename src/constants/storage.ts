@@ -1,4 +1,4 @@
-export const MOCK_DATABASE_VERSION = 21
+export const MOCK_DATABASE_VERSION = 22
 
 export const STORAGE_KEYS = {
   version: 'miacargo:db-version',

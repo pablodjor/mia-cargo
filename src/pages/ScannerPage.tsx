@@ -18,7 +18,8 @@ import { packagesService } from '@/services/packages.service'
 import type { Package } from '@/types'
 import { getPackageDeliveryAssignment } from '@/utils/package-delivery-info'
 import { formatArs, formatUsd } from '@/utils/money'
-import { buildGoogleMapsUrl, formatFullAddress } from '@/utils/maps'
+import { buildGoogleMapsUrl } from '@/utils/maps'
+import { formatPackageMapsAddress } from '@/utils/delivery-address'
 import { cn } from '@/utils/cn'
 import { paymentChipClass } from '@/utils/payment-display'
 
@@ -70,7 +71,7 @@ export default function ScannerPage() {
 
   if (loading) return <PageLoader label="Cargando búsqueda…" />
 
-  const address = result ? formatFullAddress(result) : ''
+  const address = result ? formatPackageMapsAddress(result) : ''
   const canAddToDelivery = result && result.status !== 'delivered' && result.status !== 'cancelled'
 
   return (

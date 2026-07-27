@@ -48,8 +48,13 @@ import { vehiclesService } from '@/services/vehicles.service'
 import type { DeliveryStop, Package as CargoPackage, PaymentStatus } from '@/types'
 import { addDaysISODate, formatDateTime, formatDeliveryDateDisplay, isDeliveryScheduledForToday } from '@/utils/date'
 import { formatArs } from '@/utils/money'
-import { buildGoogleMapsRouteUrl, buildGoogleMapsUrl, formatFullAddress } from '@/utils/maps'
-import { formatStopAddress, formatPackageAddress, hasAlternateDeliveryAddress } from '@/utils/delivery-address'
+import { buildGoogleMapsRouteUrl, buildGoogleMapsUrl, formatMapsAddress } from '@/utils/maps'
+import {
+  formatStopAddress,
+  formatPackageAddress,
+  formatStopMapsAddress,
+  hasAlternateDeliveryAddress,
+} from '@/utils/delivery-address'
 import { driverDeliveryPaymentOptions, needsPaymentConfirmOnDelivery } from '@/utils/payment-rules'
 import { canDownloadDeliveryReport } from '@/utils/delivery-report-export'
 import { cn } from '@/utils/cn'
@@ -121,7 +126,7 @@ export default function DriverDeliveryPage() {
     isCourier && delivery.courierId
       ? data.couriers.find((item) => item.id === delivery.courierId)
       : undefined
-  const courierAddress = courier ? formatFullAddress(courier) : ''
+  const courierMapsAddress = courier ? formatMapsAddress(courier) : ''
 
   const stopStatusOrder: Record<DeliveryStop['status'], number> = {
     pending: 0,
@@ -147,10 +152,9 @@ export default function DriverDeliveryPage() {
   const selectedId = activePackageId ?? nextStop?.pkg.id ?? null
   const selected = stops.find((item) => item.pkg.id === selectedId) ?? nextStop
 
-  const allAddresses = stops.map((item) => formatStopAddress(item.pkg, item.stop))
-  const pendingAddresses = pendingStops.map((item) => formatStopAddress(item.pkg, item.stop))
+  const allAddresses = stops.map((item) => formatStopMapsAddress(item.pkg, item.stop))
+  const pendingAddresses = pendingStops.map((item) => formatStopMapsAddress(item.pkg, item.stop))
   const routeAddresses = pendingAddresses.length > 0 ? pendingAddresses : allAddresses
-  const mapsTarget = isCourier ? courierAddress : null
   const cashToCollect = sumCashToCollect(pendingStops.map((item) => item.pkg))
   const paymentOptions = driverDeliveryPaymentOptions(delivery.channel)
 
@@ -189,11 +193,11 @@ export default function DriverDeliveryPage() {
 
   const openFullRoute = () => {
     if (isCourier) {
-      if (!courierAddress) {
+      if (!courierMapsAddress) {
         toast.error('El correo no tiene dirección configurada')
         return
       }
-      window.open(buildGoogleMapsUrl(courierAddress), '_blank', 'noopener,noreferrer')
+      window.open(buildGoogleMapsUrl(courierMapsAddress), '_blank', 'noopener,noreferrer')
       return
     }
     if (routeAddresses.length === 0) {
@@ -428,7 +432,7 @@ export default function DriverDeliveryPage() {
           context={{
             delivery,
             packagesById: packageById,
-            driver: session ? { name: session.name, email: session.email } : undefined,
+            driver: session ? { name: session.name } : undefined,
             courier,
             vehicle: data.vehicles.find((item) => item.id === delivery.vehicleId),
             failureReasons: new Map((data.reasons ?? []).map((item) => [item.id, item.label])),
@@ -441,7 +445,7 @@ export default function DriverDeliveryPage() {
           <p className="font-semibold text-text-primary">
             {courier.name} · {courier.branchName}
           </p>
-          <p className="mt-1 text-sm text-text-secondary">{courierAddress}</p>
+          <p className="mt-1 text-sm text-text-secondary">{courierMapsAddress}</p>
           {courier.notes ? <p className="mt-2 text-sm text-text-muted">{courier.notes}</p> : null}
         </Card>
       ) : null}
@@ -474,8 +478,12 @@ export default function DriverDeliveryPage() {
             const isNext = nextStop?.pkg.id === pkg.id
             const isSelected = selected?.pkg.id === pkg.id
             const isPending = stop.status === 'pending'
-            const address = mapsTarget ?? formatStopAddress(pkg, stop)
-            const stopMapsUrl = mapsTarget ?? formatStopAddress(pkg, stop)
+            const address = isCourier && courier
+              ? `${courier.name} · ${courier.branchName}`
+              : formatStopAddress(pkg, stop)
+            const stopMapsUrl = buildGoogleMapsUrl(
+              isCourier ? courierMapsAddress : formatStopMapsAddress(pkg, stop),
+            )
             const alternateAddress = hasAlternateDeliveryAddress(pkg, stop)
 
             return (
@@ -623,7 +631,7 @@ export default function DriverDeliveryPage() {
                 ? ' El reparto ya está finalizado.'
                 : null}
           </p>
-          {(isCourier ? Boolean(courierAddress) : allAddresses.length > 0) ? (
+          {(isCourier ? Boolean(courierMapsAddress) : allAddresses.length > 0) ? (
             <Button className="mt-3 w-full" variant="outline" onClick={openFullRoute}>
               {isCourier ? 'Ver sucursal en Maps' : 'Ver ruta ida y vuelta'}
             </Button>

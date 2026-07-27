@@ -3,6 +3,7 @@ import type { Courier, Package } from '@/types'
 import { Button } from '@/components/ui/Button'
 import { OsmRouteMap } from '@/components/common/OsmRouteMap'
 import { RouteTimelinePreview } from '@/components/common/RouteTimelinePreview'
+import { formatPackageMapsAddress } from '@/utils/delivery-address'
 import {
   buildGoogleMapsRouteUrl,
   buildGoogleMapsUrl,
@@ -26,7 +27,7 @@ export function RouteMapPreview({ packages, courier, className }: RouteMapPrevie
     }
     if (packages.length === 0) return
     window.open(
-      buildGoogleMapsRouteUrl(packages.map((item) => formatMapsAddress(item))),
+      buildGoogleMapsRouteUrl(packages.map((item) => formatPackageMapsAddress(item))),
       '_blank',
       'noopener,noreferrer',
     )

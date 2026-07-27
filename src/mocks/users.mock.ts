@@ -1,49 +1,60 @@
 import type { User } from '@/types'
+import { withUserAccount } from './legacy-name'
 
 export const usersMock: User[] = [
-  {
+  withUserAccount({
     id: 'usr_admin',
-    name: 'Ana Martínez',
+    firstName: 'Ana',
+    lastName: 'Martínez',
+    username: 'admin',
     email: 'admin@miacargo.com.ar',
     password: 'demo123',
     role: 'admin',
     phone: '+54 11 4000-1000',
     avatarInitials: 'AM',
     active: true,
-  },
-  {
+  }),
+  withUserAccount({
     id: 'usr_op1',
-    name: 'Diego Soto',
+    firstName: 'Diego',
+    lastName: 'Soto',
+    username: 'operador',
     email: 'operador@miacargo.com.ar',
     password: 'demo123',
     role: 'operator',
     phone: '+54 11 4000-1001',
     avatarInitials: 'DS',
     active: true,
-  },
-  {
+  }),
+  withUserAccount({
     id: 'usr_op2',
-    name: 'Valentina Ruiz',
+    firstName: 'Valentina',
+    lastName: 'Ruiz',
+    username: 'valentina',
     email: 'valentina.ruiz@miacargo.com.ar',
     password: 'demo123',
     role: 'operator',
     phone: '+54 11 4000-1002',
     avatarInitials: 'VR',
     active: true,
-  },
-  {
+  }),
+  withUserAccount({
     id: 'usr_reader',
-    name: 'Sofía López',
+    firstName: 'Sofía',
+    lastName: 'López',
+    username: 'lector',
     email: 'lector@miacargo.com.ar',
     password: 'demo123',
     role: 'reader',
     phone: '+54 11 4000-1003',
     avatarInitials: 'SL',
     active: true,
-  },
-  {
+  }),
+  withUserAccount({
     id: 'usr_drv1',
-    name: 'Carlos Méndez',
+    firstName: 'Carlos',
+    lastName: 'Méndez',
+    username: 'chofer',
     email: 'chofer@miacargo.com.ar',
     password: 'demo123',
     role: 'driver',
@@ -51,10 +62,12 @@ export const usersMock: User[] = [
     driverId: 'drv_1',
     avatarInitials: 'CM',
     active: true,
-  },
-  {
+  }),
+  withUserAccount({
     id: 'usr_drv2',
-    name: 'Lucía Fernández',
+    firstName: 'Lucía',
+    lastName: 'Fernández',
+    username: 'lucia',
     email: 'lucia.fernandez@miacargo.com.ar',
     password: 'demo123',
     role: 'driver',
@@ -62,10 +75,12 @@ export const usersMock: User[] = [
     driverId: 'drv_2',
     avatarInitials: 'LF',
     active: true,
-  },
-  {
+  }),
+  withUserAccount({
     id: 'usr_drv3',
-    name: 'Martín Rivas',
+    firstName: 'Martín',
+    lastName: 'Rivas',
+    username: 'martin',
     email: 'martin.rivas@miacargo.com.ar',
     password: 'demo123',
     role: 'driver',
@@ -73,5 +88,5 @@ export const usersMock: User[] = [
     driverId: 'drv_3',
     avatarInitials: 'MR',
     active: true,
-  },
+  }),
 ]

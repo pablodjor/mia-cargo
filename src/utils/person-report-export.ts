@@ -8,6 +8,7 @@ import type { Package, Person, PersonPackageStats } from '@/types'
 import { formatAddressLine } from '@/utils/address-details'
 import { formatDateTime } from '@/utils/date'
 import { formatArs, formatUsd } from '@/utils/money'
+import { formatFullName } from '@/utils/person-name'
 
 export interface PersonReportContext {
   person: Person
@@ -24,7 +25,7 @@ function buildSummaryRows(context: PersonReportContext) {
 
   const rows: Array<[string, string]> = [
     ['Reporte de cliente', ''],
-    ['Nombre', person.name],
+    ['Nombre', formatFullName(person)],
     ['Teléfono', person.phone],
     [
       'Dirección',

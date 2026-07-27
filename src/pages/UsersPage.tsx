@@ -19,14 +19,16 @@ import { userSchema, type UserFormValues } from '@/schemas'
 import { driversService } from '@/services/drivers.service'
 import { usersService } from '@/services/users.service'
 import type { User } from '@/types'
+import { formatFullName } from '@/utils/person-name'
 import { sortRows, toggleTableSort } from '@/utils/table-sort'
 
 const DEFAULT_SORT: TableSortState = { key: 'name', direction: 'asc' }
 
 function getUserSortValue(user: User, key: string): string | number {
+  const displayName = formatFullName(user)
   switch (key) {
     case 'name':
-      return user.name
+      return displayName
     case 'role':
       return ROLE_LABELS[user.role]
     case 'phone':
@@ -34,12 +36,14 @@ function getUserSortValue(user: User, key: string): string | number {
     case 'status':
       return user.active ? 'active' : 'inactive'
     default:
-      return user.name
+      return displayName
   }
 }
 
 const emptyValues: UserFormValues = {
-  name: '',
+  username: '',
+  firstName: '',
+  lastName: '',
   email: '',
   password: '',
   role: 'operator',
@@ -93,7 +97,7 @@ export default function UsersPage() {
         })
         .map((driver) => ({
           value: driver.id,
-          label: `${driver.name} · ${driver.email}`,
+          label: formatFullName(driver),
         })),
     [data?.drivers, linkedDriverIds, editing?.driverId],
   )
@@ -108,8 +112,8 @@ export default function UsersPage() {
     if (selectedRole !== 'driver' || !selectedDriverId || editing) return
     const driver = driverById.get(selectedDriverId)
     if (!driver) return
-    form.setValue('name', driver.name, { shouldDirty: true })
-    form.setValue('email', driver.email, { shouldDirty: true })
+    form.setValue('firstName', driver.firstName, { shouldDirty: true })
+    form.setValue('lastName', driver.lastName, { shouldDirty: true })
     form.setValue('phone', driver.phone, { shouldDirty: true })
   }, [selectedRole, selectedDriverId, driverById, editing, form])
 
@@ -118,8 +122,10 @@ export default function UsersPage() {
     form.reset(
       user
         ? {
-            name: user.name,
-            email: user.email,
+            username: user.username,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email ?? '',
             password: '',
             role: user.role,
             phone: user.phone ?? '',
@@ -174,8 +180,9 @@ export default function UsersPage() {
             {user.avatarInitials}
           </div>
           <div>
-            <strong>{user.name}</strong>
-            <p className="text-sm text-text-secondary">{user.email}</p>
+            <strong>{formatFullName(user)}</strong>
+            <p className="text-sm text-text-secondary">@{user.username}</p>
+            {user.email ? <p className="text-xs text-text-muted">{user.email}</p> : null}
           </div>
         </div>
       ),
@@ -189,7 +196,7 @@ export default function UsersPage() {
           <p>{ROLE_LABELS[user.role]}</p>
           {user.role === 'driver' && user.driverId ? (
             <p className="text-xs text-text-muted">
-              Chofer: {driverById.get(user.driverId)?.name ?? user.driverId}
+              Chofer: {driverById.get(user.driverId) ? formatFullName(driverById.get(user.driverId)!) : user.driverId}
             </p>
           ) : null}
         </div>
@@ -263,9 +270,18 @@ export default function UsersPage() {
         footer={<Button onClick={() => void save()}>Guardar</Button>}
       >
         <form className="grid gap-3" onSubmit={(event) => void save(event)}>
-          <Input label="Nombre" error={form.formState.errors.name?.message} {...form.register('name')} />
+          <div className="grid gap-3 md:grid-cols-2">
+            <Input label="Nombre" error={form.formState.errors.firstName?.message} {...form.register('firstName')} />
+            <Input label="Apellido" error={form.formState.errors.lastName?.message} {...form.register('lastName')} />
+          </div>
           <Input
-            label="Email"
+            label="Usuario"
+            autoComplete="username"
+            error={form.formState.errors.username?.message}
+            {...form.register('username')}
+          />
+          <Input
+            label="Email (opcional)"
             type="email"
             error={form.formState.errors.email?.message}
             {...form.register('email')}
@@ -273,6 +289,7 @@ export default function UsersPage() {
           <Input
             label={editing ? 'Contraseña (dejar vacío para no cambiar)' : 'Contraseña'}
             type="password"
+            autoComplete="new-password"
             error={form.formState.errors.password?.message}
             {...form.register('password')}
           />
@@ -314,7 +331,7 @@ export default function UsersPage() {
       <ConfirmDialog
         open={Boolean(deleteTarget)}
         title="Eliminar usuario"
-        description={`¿Eliminar a ${deleteTarget?.name}? Esta acción no se puede deshacer.`}
+        description={`¿Eliminar a ${deleteTarget ? formatFullName(deleteTarget) : ''}? Esta acción no se puede deshacer.`}
         tone="danger"
         confirmLabel="Eliminar"
         onCancel={() => setDeleteTarget(null)}

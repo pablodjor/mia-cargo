@@ -36,9 +36,9 @@ import { settingsService } from '@/services/settings.service'
 import { vehiclesService } from '@/services/vehicles.service'
 import type { DeliveryStop, Package, PaymentStatus } from '@/types'
 import { addDaysISODate, formatDate, formatDateTime, formatDeliveryDateDisplay, isDeliveryScheduledForToday } from '@/utils/date'
-import { formatStopAddress, formatPackageAddress, hasAlternateDeliveryAddress } from '@/utils/delivery-address'
+import { formatStopAddress, formatPackageAddress, formatStopMapsAddress, formatPackageMapsAddress, hasAlternateDeliveryAddress } from '@/utils/delivery-address'
 import { formatArs } from '@/utils/money'
-import { buildGoogleMapsRouteUrl, buildGoogleMapsUrl, formatFullAddress } from '@/utils/maps'
+import { buildGoogleMapsRouteUrl, buildGoogleMapsUrl, formatFullAddress, formatMapsAddress } from '@/utils/maps'
 import { canDownloadDeliveryReport, canEditDelivery } from '@/utils/delivery-report-export'
 import { cn } from '@/utils/cn'
 import {
@@ -116,7 +116,7 @@ export default function DeliveryDetailPage() {
     delivery.channel === 'courier' && delivery.courierId
       ? data.couriers.find((item) => item.id === delivery.courierId)
       : undefined
-  const courierAddress = courier ? formatFullAddress(courier) : ''
+  const courierMapsAddress = courier ? formatMapsAddress(courier) : ''
   const isCourier = delivery.channel === 'courier'
   const progress = deliveriesService.getProgress(delivery)
   const orderedStops = delivery.stops.slice().sort((a, b) => a.order - b.order)
@@ -142,7 +142,7 @@ export default function DeliveryDetailPage() {
   const allAddresses = orderedStops
     .map((stop) => {
       const pkg = packageById.get(stop.packageId)
-      return pkg ? formatStopAddress(pkg, stop) : null
+      return pkg ? formatStopMapsAddress(pkg, stop) : null
     })
     .filter((address): address is string => Boolean(address))
 
@@ -150,7 +150,7 @@ export default function DeliveryDetailPage() {
     .filter((stop) => stop.status === 'pending')
     .map((stop) => {
       const pkg = packageById.get(stop.packageId)
-      return pkg ? formatStopAddress(pkg, stop) : null
+      return pkg ? formatStopMapsAddress(pkg, stop) : null
     })
     .filter((address): address is string => Boolean(address))
 
@@ -158,11 +158,11 @@ export default function DeliveryDetailPage() {
 
   const openBestRoute = () => {
     if (isCourier) {
-      if (!courierAddress) {
+      if (!courierMapsAddress) {
         toast.error('El correo no tiene dirección configurada')
         return
       }
-      window.open(buildGoogleMapsUrl(courierAddress), '_blank', 'noopener,noreferrer')
+      window.open(buildGoogleMapsUrl(courierMapsAddress), '_blank', 'noopener,noreferrer')
       return
     }
     if (routeAddresses.length === 0) {
@@ -486,7 +486,16 @@ export default function DeliveryDetailPage() {
         <div className="divide-y divide-border rounded-[10px] border border-border">
           {orderedStops.map((stop) => {
             const pkg = packageById.get(stop.packageId)
-            const address = isCourier ? courierAddress : pkg ? formatStopAddress(pkg, stop) : ''
+            const address = isCourier && courier
+              ? `${courier.name} · ${courier.branchName}`
+              : pkg
+                ? formatStopAddress(pkg, stop)
+                : ''
+            const mapsAddress = isCourier
+              ? courierMapsAddress
+              : pkg
+                ? formatStopMapsAddress(pkg, stop)
+                : ''
             const defaultAddress = pkg ? formatPackageAddress(pkg) : ''
             const alternateAddress = pkg && hasAlternateDeliveryAddress(pkg, stop)
             const isNext = nextStop?.packageId === stop.packageId
@@ -576,9 +585,9 @@ export default function DeliveryDetailPage() {
                 <DeliveryStopAdminActions
                   stop={stop}
                   canEdit={canEditStops}
-                  hasAddress={Boolean(address)}
+                  hasAddress={Boolean(mapsAddress)}
                   onMaps={() =>
-                    window.open(buildGoogleMapsUrl(address), '_blank', 'noopener,noreferrer')
+                    window.open(buildGoogleMapsUrl(mapsAddress), '_blank', 'noopener,noreferrer')
                   }
                   onMarkDelivered={() => openMarkDelivered(stop)}
                   onMarkFailed={() => openMarkFailed(stop)}
@@ -605,7 +614,7 @@ export default function DeliveryDetailPage() {
               </strong>
               {!isCourier && nextPkg ? (
                 <span className="mt-0.5 block text-xs font-normal text-text-secondary">
-                  {formatFullAddress(nextPkg)}
+                  {formatPackageMapsAddress(nextPkg)}
                 </span>
               ) : null}
             </span>

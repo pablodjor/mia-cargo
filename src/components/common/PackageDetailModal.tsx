@@ -15,10 +15,9 @@ import type { Package as PackageEntity } from '@/types'
 import { formatDateTime } from '@/utils/date'
 import { paymentChipClass } from '@/utils/payment-display'
 import { formatArs, formatUsd } from '@/utils/money'
-import { formatPackageAddress } from '@/utils/delivery-address'
+import { formatPackageAddress, formatPackageMapsAddress } from '@/utils/delivery-address'
 import { getPackageDeliveryAssignment } from '@/utils/package-delivery-info'
-import { buildGoogleMapsUrl, formatFullAddress } from '@/utils/maps'
-import { streetAddressWithUnit } from '@/utils/address-details'
+import { buildGoogleMapsUrl } from '@/utils/maps'
 import { cn } from '@/utils/cn'
 
 interface PackageDetailModalProps {
@@ -48,14 +47,7 @@ export function PackageDetailModal({ pkg, onClose, onEdit }: PackageDetailModalP
   }, [pkg?.id, pkg?.deliveryId])
 
   const address = pkg ? formatPackageAddress(pkg) : ''
-  const mapsAddress = pkg
-    ? formatFullAddress({
-        address: streetAddressWithUnit(pkg.address, pkg.addressUnit),
-        city: pkg.city,
-        province: pkg.province,
-        postalCode: pkg.postalCode,
-      })
-    : ''
+  const mapsAddress = pkg ? formatPackageMapsAddress(pkg) : ''
 
   return (
     <Modal

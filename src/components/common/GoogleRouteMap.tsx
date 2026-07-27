@@ -1,6 +1,7 @@
 import { AlertTriangle } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type { Courier, Package } from '@/types'
+import { formatPackageMapsAddress } from '@/utils/delivery-address'
 import { DEFAULT_ROUTE_HUB, formatMapsAddress } from '@/utils/maps'
 import { getGoogleMapsApiKey, loadGoogleMaps } from '@/utils/google-maps-loader'
 import { cn } from '@/utils/cn'
@@ -78,7 +79,7 @@ export function GoogleRouteMap({ packages, courier, className }: GoogleRouteMapP
 
         if (!courier && packages.length > 0) {
           request.waypoints = packages.map((item) => ({
-            location: formatMapsAddress(item),
+            location: formatPackageMapsAddress(item),
             stopover: true,
           }))
         }

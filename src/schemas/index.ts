@@ -1,16 +1,52 @@
 import { z } from 'zod'
+import { isCabaProvince, normalizeDestinationLocation } from '@/utils/destination-location'
 
-export const packageSchema = z.object({
+const nameFields = {
+  firstName: z.string().min(1, 'Nombre requerido'),
+  lastName: z.string().min(1, 'Apellido requerido'),
+}
+
+const destinationLocationRefine = (
+  data: { destinationType: 'caba' | 'gba' | 'interior'; city: string; province: string },
+  ctx: z.RefinementCtx,
+) => {
+  if (data.destinationType === 'gba' && isCabaProvince(data.province)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'En GBA la provincia debe ser Buenos Aires',
+      path: ['province'],
+    })
+  }
+  if (data.destinationType === 'caba' && data.province.trim() && !isCabaProvince(data.province)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'En CABA la provincia debe ser CABA',
+      path: ['province'],
+    })
+  }
+}
+
+const destinationLocationTransform = <
+  T extends { destinationType: 'caba' | 'gba' | 'interior'; city: string; province: string },
+>(
+  data: T,
+) => normalizeDestinationLocation(data)
+
+export const packageSchema = z
+  .object({
   personId: z.string().optional(),
   shCode: z.string().min(1, 'Código SH requerido'),
-  ownerName: z.string().min(2, 'Nombre requerido'),
+  ownerFirstName: z.string().min(1, 'Nombre requerido'),
+  ownerLastName: z.string().min(1, 'Apellido requerido'),
   ownerPhone: z.string().min(6, 'Teléfono requerido'),
   weight: z.number().positive('Peso inválido'),
   address: z.string().min(3, 'Dirección requerida'),
   city: z.string().min(2, 'Localidad requerida'),
   province: z.string().min(2, 'Provincia requerida'),
   postalCode: z.string().min(3, 'Código postal requerido'),
-  destinationType: z.enum(['caba', 'gba', 'interior']),
+  destinationType: z.enum(['caba', 'gba', 'interior'], {
+    message: 'Seleccioná la zona de destino',
+  }),
   status: z.enum([
     'pending',
     'assigned',
@@ -28,23 +64,30 @@ export const packageSchema = z.object({
   usdRate: z.number().positive('Cotización inválida'),
   paymentStatus: z.enum(['paid', 'cash', 'usd_cash', 'pending', 'transfer']),
 })
+  .superRefine(destinationLocationRefine)
+  .transform(destinationLocationTransform)
 
 export type PackageFormValues = z.infer<typeof packageSchema>
 
-export const personSchema = z.object({
-  name: z.string().min(2, 'Nombre requerido'),
+export const personSchema = z
+  .object({
+  ...nameFields,
   phone: z.string().min(6, 'Teléfono requerido'),
   address: z.string().min(3, 'Dirección requerida'),
   city: z.string().min(2, 'Localidad requerida'),
   province: z.string().min(2, 'Provincia requerida'),
   postalCode: z.string().min(3, 'Código postal requerido'),
-  destinationType: z.enum(['caba', 'gba', 'interior']),
+  destinationType: z.enum(['caba', 'gba', 'interior'], {
+    message: 'Seleccioná la zona de destino',
+  }),
   status: z.enum(['active', 'inactive']),
   notes: z.string().optional(),
   addressUnit: z.string().optional(),
   addressBell: z.string().optional(),
   addressPlaceType: z.enum(['home', 'work', 'other']).optional(),
 })
+  .superRefine(destinationLocationRefine)
+  .transform(destinationLocationTransform)
 
 export type PersonFormValues = z.infer<typeof personSchema>
 
@@ -86,10 +129,15 @@ export const courierSchema = z.object({
 export type CourierFormValues = z.infer<typeof courierSchema>
 
 export const driverSchema = z.object({
-  name: z.string().min(2, 'Nombre requerido'),
+  ...nameFields,
   dni: z.string().min(7, 'DNI inválido'),
   phone: z.string().min(6, 'Teléfono requerido'),
-  email: z.string().email('Email inválido'),
+  email: z
+    .string()
+    .optional()
+    .refine((value) => !value?.trim() || z.string().email().safeParse(value.trim()).success, {
+      message: 'Email inválido',
+    }),
   status: z.enum(['active', 'inactive']),
   habitualVehicleId: z.string().optional(),
 })
@@ -108,7 +156,7 @@ export const vehicleSchema = z.object({
 export type VehicleFormValues = z.infer<typeof vehicleSchema>
 
 export const loginSchema = z.object({
-  email: z.string().email('Email inválido'),
+  username: z.string().min(2, 'Usuario requerido'),
   password: z.string().min(4, 'Contraseña requerida'),
 })
 
@@ -130,8 +178,14 @@ export type DriverFailureFormValues = z.infer<typeof driverFailureSchema>
 
 export const userSchema = z
   .object({
-    name: z.string().min(2, 'Nombre requerido'),
-    email: z.string().email('Email inválido'),
+    ...nameFields,
+    username: z.string().min(2, 'Usuario requerido'),
+    email: z
+    .string()
+    .optional()
+    .refine((value) => !value?.trim() || z.string().email().safeParse(value.trim()).success, {
+      message: 'Email inválido',
+    }),
     password: z.string().optional(),
     role: z.enum(['admin', 'operator', 'reader', 'driver'], { message: 'Rol requerido' }),
     phone: z.string().optional(),

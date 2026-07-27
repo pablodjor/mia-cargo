@@ -9,6 +9,8 @@ import { delay } from '@/utils/delay'
 import { calculatePackageTotals } from '@/utils/money'
 import { appendPackageFailedAttempt } from '@/utils/package-attempts'
 import { findDuplicatePersons } from '@/utils/person-duplicate'
+import { resolvePackageOwnerFields } from '@/utils/person-name'
+import { normalizeDestinationLocation } from '@/utils/destination-location'
 import {
   assertCourierPackagePayment,
   deskDeliveryMethodLabel,
@@ -26,7 +28,10 @@ export const PACKAGE_AVAILABLE_FOR_DELIVERY: PackageStatus[] = [
   'not_delivered',
 ]
 
-export type PackageInput = Omit<Package, 'id' | 'createdAt' | 'updatedAt' | 'deliveryId' | 'totalUsd' | 'totalArs'> & {
+export type PackageInput = Omit<
+  Package,
+  'id' | 'createdAt' | 'updatedAt' | 'deliveryId' | 'totalUsd' | 'totalArs' | 'ownerName'
+> & {
   totalUsd?: number
   totalArs?: number
 }
@@ -53,14 +58,21 @@ function nextShCode(packages: Package[]): string {
 async function ensurePackagePersonLink(input: PackageInput): Promise<string | undefined> {
   if (input.personId) return input.personId
 
-  const personData = {
-    name: input.ownerName,
-    phone: input.ownerPhone,
-    address: input.address,
+  const location = normalizeDestinationLocation({
     city: input.city,
     province: input.province,
-    postalCode: input.postalCode,
     destinationType: input.destinationType,
+  })
+
+  const personData = {
+    firstName: input.ownerFirstName,
+    lastName: input.ownerLastName,
+    phone: input.ownerPhone,
+    address: input.address,
+    city: location.city,
+    province: location.province,
+    postalCode: input.postalCode,
+    destinationType: location.destinationType,
     addressUnit: input.addressUnit,
     addressBell: input.addressBell,
     addressPlaceType: input.addressPlaceType,
@@ -107,8 +119,16 @@ export const packagesService = {
     const packages = storageService.getPackages()
     const personId = await ensurePackagePersonLink(input)
     const now = new Date().toISOString()
+    const location = normalizeDestinationLocation({
+      city: input.city,
+      province: input.province,
+      destinationType: input.destinationType,
+    })
+    const owner = resolvePackageOwnerFields(input)
     const pkg: Package = {
       ...input,
+      ...location,
+      ...owner,
       personId,
       ...withTotals(input),
       id: createId('pkg'),
@@ -151,10 +171,18 @@ export const packagesService = {
       paymentStatus: data.paymentStatus ?? current.paymentStatus,
     }
     const personId = await ensurePackagePersonLink(merged)
+    const location = normalizeDestinationLocation({
+      city: merged.city,
+      province: merged.province,
+      destinationType: merged.destinationType,
+    })
+    const owner = resolvePackageOwnerFields({ ...current, ...data })
 
     const updated: Package = {
       ...current,
       ...data,
+      ...location,
+      ...owner,
       personId,
       ...withTotals(merged),
       id: current.id,

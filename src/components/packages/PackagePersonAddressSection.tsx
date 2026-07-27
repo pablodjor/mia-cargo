@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import type { Person } from '@/types'
+import { getDestinationLocationDefaults } from '@/utils/destination-location'
 import { formatAddressExtrasSummary, formatAddressLine } from '@/utils/address-details'
 import {
   CUSTOM_ADDRESS_KEY,
@@ -223,12 +224,14 @@ export function PackagePersonAddressSection({
               />
             </div>
             <Select
-              label="Zona"
+              label="Zona de destino"
               options={destinationOptions}
               value={values.destinationType}
-              onChange={(event) =>
-                onChange({ destinationType: event.target.value as Person['destinationType'] })
-              }
+              onChange={(event) => {
+                const nextType = event.target.value as Person['destinationType']
+                const defaults = getDestinationLocationDefaults(nextType, values.destinationType)
+                onChange({ destinationType: nextType, ...defaults })
+              }}
               error={errors?.destinationType}
             />
             <PackageAddressExtrasFields values={extras} onChange={onExtrasChange} />

@@ -1,9 +1,11 @@
 import type { DestinationType, Package, PaymentStatus, Person } from '@/types'
 import { calculatePackageTotals } from '@/utils/money'
+import { formatFullName } from '@/utils/person-name'
+import { withPackageOwner, withPersonNames } from './legacy-name'
 
 const createdAt = '2025-05-15T10:00:00.000Z'
 
-export const corporateClientsMock: Person[] = [
+const corporateClientsRaw = [
   {
     id: 'per_021',
     name: 'Fravega S.A.',
@@ -90,6 +92,10 @@ export const corporateClientsMock: Person[] = [
   },
 ]
 
+export const corporateClientsMock: Person[] = corporateClientsRaw.map((client) =>
+  withPersonNames(client),
+) as Person[]
+
 interface ClientAddress {
   address: string
   city: string
@@ -155,7 +161,7 @@ const corporatePackageSeeds: CorporatePackageSeed[] = [
   // Fravega — 12 entregados
   ...Array.from({ length: 12 }, (_, i) => ({
     personId: fravega.id,
-    ownerName: fravega.name,
+    ownerName: formatFullName(fravega),
     ownerPhone: fravega.phone,
     address: fravegaAddresses[i % fravegaAddresses.length]!,
     weight: Number((3.5 + (i % 5) * 2.2).toFixed(2)),
@@ -166,7 +172,7 @@ const corporatePackageSeeds: CorporatePackageSeed[] = [
   // CompraGamer — 10 entregados
   ...Array.from({ length: 10 }, (_, i) => ({
     personId: compragamer.id,
-    ownerName: compragamer.name,
+    ownerName: formatFullName(compragamer),
     ownerPhone: compragamer.phone,
     address: compragamerAddresses[i % compragamerAddresses.length]!,
     weight: Number((1.2 + (i % 4) * 0.8).toFixed(2)),
@@ -177,7 +183,7 @@ const corporatePackageSeeds: CorporatePackageSeed[] = [
   // Garbarino — 8 entregados
   ...Array.from({ length: 8 }, (_, i) => ({
     personId: garbarino.id,
-    ownerName: garbarino.name,
+    ownerName: formatFullName(garbarino),
     ownerPhone: garbarino.phone,
     address: garbarinoAddresses[i % garbarinoAddresses.length]!,
     weight: Number((2 + (i % 6) * 1.5).toFixed(2)),
@@ -187,7 +193,7 @@ const corporatePackageSeeds: CorporatePackageSeed[] = [
   // Musimundo — 8 entregados
   ...Array.from({ length: 8 }, (_, i) => ({
     personId: musimundo.id,
-    ownerName: musimundo.name,
+    ownerName: formatFullName(musimundo),
     ownerPhone: musimundo.phone,
     address: musimundoAddresses[i % musimundoAddresses.length]!,
     weight: Number((4 + (i % 4) * 2.5).toFixed(2)),
@@ -198,7 +204,7 @@ const corporatePackageSeeds: CorporatePackageSeed[] = [
   // Mercado Libre — 14 entregados + 1 pendiente (activo)
   ...Array.from({ length: 15 }, (_, i) => ({
     personId: mercadolibre.id,
-    ownerName: mercadolibre.name,
+    ownerName: formatFullName(mercadolibre),
     ownerPhone: mercadolibre.phone,
     address: mlAddresses[i % mlAddresses.length]!,
     weight: Number((0.8 + (i % 8) * 0.6).toFixed(2)),
@@ -209,7 +215,7 @@ const corporatePackageSeeds: CorporatePackageSeed[] = [
   // Falabella — 6 entregados
   ...Array.from({ length: 6 }, (_, i) => ({
     personId: falabella.id,
-    ownerName: falabella.name,
+    ownerName: formatFullName(falabella),
     ownerPhone: falabella.phone,
     address: falabellaAddresses[i % falabellaAddresses.length]!,
     weight: Number((2.5 + (i % 3) * 1.8).toFixed(2)),
@@ -238,7 +244,7 @@ export function createCorporateClientPackages(): Package[] {
     const usdRate = 1501
     const totals = calculatePackageTotals(seed.weight, pricePerKgUsd, usdRate)
 
-    return {
+    return withPackageOwner({
       id: `pkg_${String(n).padStart(3, '0')}`,
       shCode: `SH${10000 + n}`,
       personId: seed.personId,
@@ -259,7 +265,7 @@ export function createCorporateClientPackages(): Package[] {
       notes: seed.notes,
       createdAt: created.toISOString(),
       updatedAt: deliveredAt.toISOString(),
-    }
+    })
   })
 }
 
