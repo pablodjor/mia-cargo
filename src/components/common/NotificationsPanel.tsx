@@ -14,6 +14,7 @@ import { IconButton } from '@/components/ui/IconButton'
 import { useAsyncData } from '@/hooks/useAsyncData'
 import { notificationsService } from '@/services/notifications.service'
 import { formatDateTime } from '@/utils/date'
+import { formatHistoryDescription } from '@/utils/history-display'
 import { getNotificationLink, getNotificationMeta } from '@/utils/notifications'
 import { cn } from '@/utils/cn'
 
@@ -217,7 +218,9 @@ export function NotificationsPanel() {
                       <Icon className="h-4 w-4" />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-sm text-text-primary">{entry.description}</span>
+                      <span className="block text-sm text-text-primary">
+                        {formatHistoryDescription(entry)}
+                      </span>
                       <span className="mt-1 block text-xs text-text-muted">
                         {entry.userName} · {formatDateTime(entry.createdAt)}
                       </span>

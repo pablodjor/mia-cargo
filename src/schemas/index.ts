@@ -56,6 +56,7 @@ export const packageSchema = z
     'rescheduled',
     'cancelled',
   ]),
+  contents: z.string().optional(),
   notes: z.string().optional(),
   addressUnit: z.string().optional(),
   addressBell: z.string().optional(),

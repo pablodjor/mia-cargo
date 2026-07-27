@@ -26,6 +26,7 @@ import { historyService } from '@/services/history.service'
 import { packagesService } from '@/services/packages.service'
 import type { Delivery, DeliveryStatus, HistoryEntry, Package, PackageStatus } from '@/types'
 import { formatDateTime } from '@/utils/date'
+import { formatHistoryDescription } from '@/utils/history-display'
 import { isDeliveryCode } from '@/utils/delivery-code'
 import { sortRows, toggleTableSort } from '@/utils/table-sort'
 
@@ -152,6 +153,11 @@ export default function HistoryPage() {
   )
   const history = data?.history ?? []
   const filteredPackage = data?.pkg ?? null
+  const filteredPackageCode = useMemo(() => {
+    if (filteredPackage) return filteredPackage.shCode
+    if (!entityId) return null
+    return history.find((item) => item.entityId === entityId)?.relatedCode ?? null
+  }, [filteredPackage, entityId, history])
   const packageById = useMemo(
     () => new Map((data?.packages ?? []).map((item) => [item.id, item])),
     [data?.packages],
@@ -233,7 +239,9 @@ export default function HistoryPage() {
       header: 'Detalle',
       sortable: true,
       className: 'min-w-[220px]',
-      render: (h) => <span className="text-sm text-text-primary">{h.description}</span>,
+      render: (h) => (
+        <span className="text-sm text-text-primary">{formatHistoryDescription(h)}</span>
+      ),
     },
     {
       key: 'user',
@@ -260,7 +268,9 @@ export default function HistoryPage() {
           {entityId
             ? filteredPackage
               ? `Seguimiento de cambios del paquete ${filteredPackage.shCode}.`
-              : 'Seguimiento de cambios de una entidad específica.'
+              : filteredPackageCode
+                ? `Seguimiento del paquete ${filteredPackageCode} (eliminado del sistema).`
+                : 'Seguimiento de cambios de una entidad específica.'
             : 'Registro de auditoría de operaciones: quién hizo qué y cuándo en paquetes, repartos y más.'}
         </p>
       </div>
@@ -271,7 +281,9 @@ export default function HistoryPage() {
             <p className="text-sm">
               {filteredPackage
                 ? `Mostrando solo eventos del paquete ${filteredPackage.shCode} (${filteredPackage.ownerName}).`
-                : `Mostrando solo eventos de la entidad ${entityId}.`}
+                : filteredPackageCode
+                  ? `Mostrando eventos del paquete ${filteredPackageCode}. El paquete ya no existe en el listado.`
+                  : `Mostrando solo eventos de la entidad ${entityId}.`}
             </p>
             <Button variant="outline" size="sm" onClick={clearEntityFilter}>
               <X className="h-4 w-4" />

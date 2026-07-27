@@ -1,5 +1,6 @@
 import type { HistoryEntry, Package, PackageFailedAttempt } from '@/types'
 import { translateHistoryStatus } from '@/constants/labels'
+import { formatHistoryDescription } from '@/utils/history-display'
 import { resolveAttemptReason } from '@/utils/package-attempts'
 
 export type PackageTimelineKind =
@@ -35,6 +36,7 @@ const ACTION_KIND: Record<string, PackageTimelineKind> = {
   package_status_reset: 'reset',
   package_payment_changed: 'updated',
   package_pickup_registered: 'delivered',
+  package_deleted: 'other',
 }
 
 function titleForKind(kind: PackageTimelineKind, entry: HistoryEntry): string {
@@ -51,6 +53,8 @@ function titleForKind(kind: PackageTimelineKind, entry: HistoryEntry): string {
       return 'Entrega reprogramada'
     case 'reset':
       return 'Vuelto a pendiente'
+    case 'other':
+      return entry.action === 'package_deleted' ? 'Paquete eliminado' : 'Movimiento registrado'
     case 'status': {
       const to = translateHistoryStatus(entry.newStatus)
       return to ? `Estado actualizado · ${to}` : 'Cambio de estado'
@@ -67,7 +71,7 @@ function historyToEvent(entry: HistoryEntry): PackageTimelineEvent {
     at: entry.createdAt,
     kind,
     title: titleForKind(kind, entry),
-    detail: entry.description,
+    detail: formatHistoryDescription(entry),
     userName: entry.userName,
     statusFrom: entry.previousStatus,
     statusTo: entry.newStatus,

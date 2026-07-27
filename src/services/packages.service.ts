@@ -230,13 +230,51 @@ export const packagesService = {
       relatedCode: updated.shCode,
       previousStatus: current.status,
       newStatus: status,
-      description: `Estado de ${updated.shCode} cambiado a ${status}`,
+      description: `Estado de ${updated.shCode} cambiado a ${PACKAGE_STATUS_LABELS[status]}`,
     })
     return updated
   },
 
   async cancel(id: string): Promise<Package> {
     return this.updateStatus(id, 'cancelled')
+  },
+
+  async remove(id: string): Promise<void> {
+    await delay()
+    storageService.seedIfNeeded()
+
+    const packages = storageService.getPackages()
+    const index = packages.findIndex((pkg) => pkg.id === id)
+    if (index < 0) throw new Error('Paquete no encontrado')
+    const current = packages[index]
+    if (!current) throw new Error('Paquete no encontrado')
+
+    const deliveries = storageService.getDeliveries()
+    if (isOnActiveDeliveryRoute(current, deliveries)) {
+      throw new Error('El paquete está en ruta. Sacalo del reparto antes de eliminarlo.')
+    }
+
+    const now = new Date().toISOString()
+    storageService.setDeliveries(
+      deliveries.map((delivery) => {
+        if (!delivery.stops.some((stop) => stop.packageId === id)) return delivery
+        return {
+          ...delivery,
+          stops: delivery.stops.filter((stop) => stop.packageId !== id),
+          updatedAt: now,
+        }
+      }),
+    )
+    storageService.setPackages(packages.filter((pkg) => pkg.id !== id))
+
+    historyService.record({
+      action: 'package_deleted',
+      entity: 'package',
+      entityId: id,
+      relatedCode: current.shCode,
+      previousStatus: current.status,
+      description: `Paquete ${current.shCode} eliminado (${PACKAGE_STATUS_LABELS[current.status]})`,
+    })
   },
 
   async updatePaymentStatus(id: string, paymentStatus: PaymentStatus): Promise<Package> {

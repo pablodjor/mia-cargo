@@ -1,4 +1,4 @@
-import { ACTIVE_DELIVERY_STATUSES, PAYMENT_STATUS_LABELS } from '@/constants/labels'
+import { ACTIVE_DELIVERY_STATUSES, DELIVERY_STATUS_LABELS, PAYMENT_STATUS_LABELS } from '@/constants/labels'
 import type {
   DashboardMetrics,
   Delivery,
@@ -342,7 +342,7 @@ export const deliveriesService = {
       relatedCode: updated.code,
       previousStatus: current.status,
       newStatus: status,
-      description: `Reparto ${updated.code} pasó a ${status}`,
+      description: `Reparto ${updated.code} pasó a ${DELIVERY_STATUS_LABELS[status]}`,
     })
 
     return updated

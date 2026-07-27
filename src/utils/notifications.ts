@@ -24,6 +24,7 @@ const ACTION_META: Record<string, NotificationMeta> = {
   package_updated: { icon: Package, tone: 'neutral' },
   package_payment_changed: { icon: Package, tone: 'info' },
   package_pickup_registered: { icon: CheckCircle2, tone: 'success' },
+  package_deleted: { icon: PackageX, tone: 'danger' },
   package_status_reset: { icon: RotateCcw, tone: 'warning' },
   delivery_created: { icon: Route, tone: 'info' },
   delivery_updated: { icon: Route, tone: 'neutral' },

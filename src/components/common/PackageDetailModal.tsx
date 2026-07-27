@@ -126,6 +126,10 @@ export function PackageDetailModal({ pkg, onClose, onEdit }: PackageDetailModalP
                 {pkg.weight} kg
               </span>
             </DetailField>
+            {pkg.contents ? (
+              <DetailField label="Contenido">{pkg.contents}</DetailField>
+            ) : null}
+            {pkg.notes ? <DetailField label="Observaciones">{pkg.notes}</DetailField> : null}
             {assignment ? (
               <DetailField label="Reparto">
                 <Link

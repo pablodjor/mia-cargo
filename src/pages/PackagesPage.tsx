@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { RefreshCw, Eye, Pencil, RefreshCcw, History, Ban } from 'lucide-react'
+import { RefreshCw, Eye, Pencil, RefreshCcw, History, Ban, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { Link } from 'react-router-dom'
@@ -134,6 +134,7 @@ function createBlank(rate: number): PackageFormValues {
     postalCode: '',
     destinationType: 'caba',
     status: 'pending',
+    contents: '',
     notes: '',
     addressUnit: '',
     addressBell: '',
@@ -176,6 +177,7 @@ export default function PackagesPage() {
   const [statusFailureNotes, setStatusFailureNotes] = useState('')
   const [statusRescheduleDate, setStatusRescheduleDate] = useState(defaultRescheduleDate)
   const [cancelTarget, setCancelTarget] = useState<Package | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Package | null>(null)
   const [registerPickupAtDesk, setRegisterPickupAtDesk] = useState(false)
   const [rateInfo, setRateInfo] = useState<OfficialUsdRate | null>(null)
   const [loadingRate, setLoadingRate] = useState(false)
@@ -290,6 +292,7 @@ export default function PackagesPage() {
         addressBell: item.addressBell ?? '',
         addressPlaceType: item.addressPlaceType,
         status: item.status,
+        contents: item.contents ?? '',
         notes: item.notes ?? '',
         pricePerKgUsd: item.pricePerKgUsd,
         usdRate: item.usdRate,
@@ -316,6 +319,7 @@ export default function PackagesPage() {
       const payload = {
         ...values,
         personId: values.personId || undefined,
+        contents: values.contents?.trim() || undefined,
         addressUnit: values.addressUnit?.trim() || undefined,
         addressBell: values.addressBell?.trim() || undefined,
         addressPlaceType: values.addressPlaceType || undefined,
@@ -860,6 +864,7 @@ export default function PackagesPage() {
             { label: 'Historial', icon: History, to: `/history?entityId=${p.id}` },
             { separator: true },
             { label: 'Cancelar', icon: Ban, onClick: () => setCancelTarget(p), tone: 'danger' },
+            { label: 'Eliminar', icon: Trash2, onClick: () => setDeleteTarget(p), tone: 'danger' },
           ]}
         />
       ),
@@ -1199,6 +1204,11 @@ export default function PackagesPage() {
             </div>
           </div>
 
+          <Textarea
+            label="Contenido del paquete"
+            placeholder="Ej.: ropa, electrónica, documentos… (opcional)"
+            {...form.register('contents')}
+          />
           <Textarea label="Observaciones" {...form.register('notes')} />
         </form>
       </Modal>
@@ -1304,6 +1314,31 @@ export default function PackagesPage() {
           </p>
         )}
       </Modal>
+
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        title="Eliminar paquete"
+        description={
+          deleteTarget
+            ? `¿Eliminar ${deleteTarget.shCode}? Se borra del sistema y queda registrado en el historial quién lo eliminó.`
+            : ''
+        }
+        tone="danger"
+        confirmLabel="Sí, eliminar"
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={async () => {
+          if (!deleteTarget) return
+          try {
+            await packagesService.remove(deleteTarget.id)
+            toast.success('Paquete eliminado')
+            setDeleteTarget(null)
+            if (detail?.id === deleteTarget.id) setDetail(null)
+            reload()
+          } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'No se pudo eliminar')
+          }
+        }}
+      />
 
       <ConfirmDialog
         open={Boolean(cancelTarget)}

@@ -129,6 +129,7 @@ export interface Package {
   totalUsd: number
   totalArs: number
   paymentStatus: PaymentStatus
+  contents?: string
   notes?: string
   failureReasonId?: string
   failureNotes?: string
