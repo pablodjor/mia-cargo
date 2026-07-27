@@ -4,6 +4,7 @@ import { DeliveryStopAddressFields } from '@/components/deliveries/DeliveryStopA
 import { DeliveryStopAdminActions } from '@/components/deliveries/DeliveryStopAdminActions'
 import { PackageDeliveryAttemptsList } from '@/components/packages/PackageDeliveryAttemptsList'
 import { DestinationBadge } from '@/components/common/DestinationBadge'
+import { PackageExtraDetails } from '@/components/common/PackageExtraDetails'
 import { PackageShCodeButton } from '@/components/common/PackageShCodeButton'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -237,6 +238,7 @@ export function DeliveryFormSelectedPackages({
                   <DestinationBadge destination={item.destinationType} /> · {item.city} ·{' '}
                   {PACKAGE_STATUS_LABELS[item.status]}
                 </p>
+                <PackageExtraDetails pkg={item} compact className="mt-1.5" />
                 {stop?.attemptedAt && stop.status === 'delivered' ? (
                   <p className="mt-1 text-xs font-medium text-success">
                     Entregado: {formatDateTime(stop.attemptedAt)}

@@ -11,6 +11,7 @@ import { PackageDeliveryAttemptsList } from '@/components/packages/PackageDelive
 import { FailureObservationFields } from '@/components/deliveries/FailureObservationFields'
 import { DownloadDeliveryReportButton } from '@/components/deliveries/DownloadDeliveryReportButton'
 import { PackageShCodeButton } from '@/components/common/PackageShCodeButton'
+import { PackageExtraDetails } from '@/components/common/PackageExtraDetails'
 import { PackagePaymentInfo, sumCashToCollect } from '@/components/common/PackagePaymentInfo'
 import { Alert } from '@/components/ui/Alert'
 import { Badge } from '@/components/ui/Badge'
@@ -567,6 +568,7 @@ export default function DeliveryDetailPage() {
                       </div>
                     ) : null}
                     {pkg ? <PackagePaymentInfo pkg={pkg} compact className="mt-1.5" /> : null}
+                    {pkg ? <PackageExtraDetails pkg={pkg} compact className="mt-1.5" /> : null}
                     {isDelivered && stop.attemptedAt ? (
                       <p className="mt-1.5 text-xs font-medium text-success">
                         Entregado: {formatDateTime(stop.attemptedAt)}

@@ -1,5 +1,6 @@
 import { MapPin, Route, Sparkles, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import { PackageExtraDetails } from '@/components/common/PackageExtraDetails'
 import { PackagePaymentInfo } from '@/components/common/PackagePaymentInfo'
 import { RouteMapPreview } from '@/components/common/RouteMapPreview'
 import { Alert } from '@/components/ui/Alert'
@@ -270,6 +271,7 @@ export function RoutePlannerModal({
                         {item.weight} kg · {PACKAGE_STATUS_LABELS[item.status]}
                       </p>
                       <PackagePaymentInfo pkg={item} compact className="mt-1.5" />
+                      <PackageExtraDetails pkg={item} compact className="mt-1.5" />
                     </div>
                     <div className="flex shrink-0 flex-col gap-1">
                       {!isCourier ? (

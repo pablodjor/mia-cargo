@@ -40,8 +40,8 @@ const KIND_META: Record<
   delivered: {
     icon: CheckCircle2,
     accent: 'text-success',
-    surface: 'bg-success-light/80',
-    ring: 'ring-success/20',
+    surface: 'bg-surface',
+    ring: 'ring-border',
   },
   failed: {
     icon: PackageX,
@@ -82,10 +82,10 @@ const OUTCOME_STYLE: Partial<
     connector: 'bg-danger/25',
   },
   delivered: {
-    card: 'rounded-[12px] border border-success/25 bg-success-light/60 p-3',
-    icon: 'border-2 border-success/25 bg-success-light/80',
+    card: 'rounded-[12px] border border-border bg-surface p-3',
+    icon: 'border-2 border-border bg-surface',
     subtitle: 'text-xs font-semibold text-success',
-    connector: 'bg-success/25',
+    connector: 'bg-border',
   },
   rescheduled: {
     card: 'rounded-[12px] border border-warning/25 bg-warning-light/55 p-3',

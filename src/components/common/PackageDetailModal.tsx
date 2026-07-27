@@ -2,6 +2,7 @@ import { MapPin, Package, Phone } from 'lucide-react'
 import { type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { PackageActivitySection } from '@/components/common/PackageActivitySection'
+import { PackageExtraDetails } from '@/components/common/PackageExtraDetails'
 import { PackagePaymentInfo } from '@/components/common/PackagePaymentInfo'
 import { PackageDeliveryAssignmentAlert } from '@/components/packages/PackageDeliveryAssignmentAlert'
 import { Button } from '@/components/ui/Button'
@@ -128,10 +129,6 @@ export function PackageDetailModal({ pkg, onClose, onEdit }: PackageDetailModalP
                 {pkg.weight} kg
               </span>
             </DetailField>
-            {pkg.contents ? (
-              <DetailField label="Contenido">{pkg.contents}</DetailField>
-            ) : null}
-            {pkg.notes ? <DetailField label="Observaciones">{pkg.notes}</DetailField> : null}
             {assignment ? (
               <DetailField label={pkg.status === 'delivered' ? 'Entregado en' : 'Reparto'}>
                 <Link
@@ -147,6 +144,8 @@ export function PackageDetailModal({ pkg, onClose, onEdit }: PackageDetailModalP
               </DetailField>
             ) : null}
           </div>
+
+          <PackageExtraDetails pkg={pkg} />
 
           <div className={cn('rounded-[12px] border px-4 py-3', paymentChipClass(pkg.paymentStatus))}>
             <p className="mb-2 text-xs font-semibold tracking-wide text-text-muted uppercase">

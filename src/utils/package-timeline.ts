@@ -102,6 +102,13 @@ export function isOperationalPackageNote(notes?: string): boolean {
   return !notes.trim().toLowerCase().startsWith('reprogramado para')
 }
 
+export function getPackageDisplayNotes(notes?: string): string | undefined {
+  const value = notes?.trim()
+  if (!value) return undefined
+  if (value.toLowerCase().startsWith('reprogramado para')) return undefined
+  return value
+}
+
 function assignAttemptNumbers(events: PackageTimelineEvent[]): PackageTimelineEvent[] {
   const attempts = events
     .filter((event) => event.kind === 'failed' || event.kind === 'rescheduled')

@@ -3,6 +3,7 @@ import { MapPin, Package as PackageIcon, Phone } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { PackageActivitySection } from '@/components/common/PackageActivitySection'
+import { PackageExtraDetails } from '@/components/common/PackageExtraDetails'
 import { PackagePaymentInfo } from '@/components/common/PackagePaymentInfo'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -177,6 +178,8 @@ export default function ScannerPage() {
                 </span>
               </DetailField>
             </div>
+
+            <PackageExtraDetails pkg={result} />
 
             <div className={cn('rounded-[12px] border px-4 py-3', paymentChipClass(result.paymentStatus))}>
               <p className="mb-2 text-xs font-semibold tracking-wide text-text-muted uppercase">

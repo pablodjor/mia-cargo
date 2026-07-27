@@ -25,6 +25,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Textarea } from '@/components/ui/Textarea'
 import { DRIVER_DEFAULT_FAILURE_REASON_ID } from '@/constants/driver-observations'
 import { PackageShCodeButton } from '@/components/common/PackageShCodeButton'
+import { PackageExtraDetails } from '@/components/common/PackageExtraDetails'
 import {
   PackagePaymentInfo,
   PaymentSummaryPanel,
@@ -34,7 +35,6 @@ import {
 import { DownloadDeliveryReportButton } from '@/components/deliveries/DownloadDeliveryReportButton'
 import { DriverPaymentConfirmModal } from '@/components/driver/DriverPaymentConfirmModal'
 import { PredefinedObservationBadges } from '@/components/driver/PredefinedObservationBadges'
-import { PackageDeliveryNote } from '@/components/driver/PackageDeliveryNote'
 import { PackageDeliveryAttemptsList } from '@/components/packages/PackageDeliveryAttemptsList'
 import { DELIVERY_CHANNEL_LABELS } from '@/constants/labels'
 import { useAuth } from '@/contexts/AuthContext'
@@ -536,9 +536,12 @@ export default function DriverDeliveryPage() {
                         </p>
                       ) : null}
                       <PackagePaymentInfo pkg={pkg} compact className="mt-2" />
-                      {pkg.notes && !(isSelected && isPending) ? (
-                        <PackageDeliveryNote note={pkg.notes} compact className="mt-2" />
-                      ) : null}
+                      <PackageExtraDetails
+                        pkg={pkg}
+                        compact
+                        className="mt-2"
+                        hidden={Boolean(isSelected && isPending)}
+                      />
                       {stop.attemptedAt && stop.status !== 'pending' ? (
                         <p
                           className={cn(
@@ -580,7 +583,7 @@ export default function DriverDeliveryPage() {
                           pkg.paymentStatus === 'paid' ? undefined : paymentActionLabel(pkg)
                         }
                       />
-                      {pkg.notes ? <PackageDeliveryNote note={pkg.notes} /> : null}
+                      <PackageExtraDetails pkg={pkg} className="mt-2" />
                     </div>
 
                     <div className="grid gap-2">

@@ -1,7 +1,6 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { CheckCircle2, History } from 'lucide-react'
-import { PackageDeliveryNote } from '@/components/driver/PackageDeliveryNote'
 import { PackageTimelineItem } from '@/components/packages/PackageTimelineItem'
 import { Badge } from '@/components/ui/Badge'
 import { useAsyncData } from '@/hooks/useAsyncData'
@@ -13,11 +12,7 @@ import { settingsService } from '@/services/settings.service'
 import type { Package } from '@/types'
 import { formatDateTime } from '@/utils/date'
 import { getPackageDeliveredBy } from '@/utils/package-delivery-info'
-import {
-  buildPackageTimeline,
-  getPackageDeliveredAt,
-  isOperationalPackageNote,
-} from '@/utils/package-timeline'
+import { buildPackageTimeline, getPackageDeliveredAt } from '@/utils/package-timeline'
 import { cn } from '@/utils/cn'
 
 interface PackageActivitySectionProps {
@@ -58,7 +53,6 @@ export function PackageActivitySection({ pkg, className }: PackageActivitySectio
   )
 
   const deliveredAt = deliveredBy?.deliveredAt ?? getPackageDeliveredAt(pkg)
-  const operationalNote = isOperationalPackageNote(pkg.notes) ? pkg.notes : undefined
 
   return (
     <section className={cn('space-y-4', className)}>
@@ -75,8 +69,8 @@ export function PackageActivitySection({ pkg, className }: PackageActivitySectio
       </div>
 
       {deliveredAt || deliveredBy ? (
-        <div className="flex items-start gap-3 rounded-[12px] border border-success/20 bg-success-light/80 px-4 py-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface ring-1 ring-success/20">
+        <div className="flex items-start gap-3 rounded-[12px] border border-border bg-surface px-4 py-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface ring-1 ring-border">
             <CheckCircle2 className="h-4 w-4 text-success" />
           </span>
           <div>
@@ -111,8 +105,6 @@ export function PackageActivitySection({ pkg, className }: PackageActivitySectio
           </div>
         </div>
       ) : null}
-
-      {operationalNote ? <PackageDeliveryNote note={operationalNote} /> : null}
 
       {timeline.length > 0 ? (
         <div className="rounded-[14px] border border-border bg-background/60 px-4 py-4">
