@@ -212,14 +212,6 @@ export default function DriverHomePage() {
         </div>
       )}
 
-      <button
-        type="button"
-        className="block w-full text-center text-sm text-primary"
-        onClick={() => navigate('/driver/profile')}
-      >
-        Ver perfil
-      </button>
-
       {deliveryDayGuardDialog}
     </div>
   )

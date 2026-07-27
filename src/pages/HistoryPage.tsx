@@ -1,6 +1,6 @@
 import { ArrowRight, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { HistoryListEmpty, HistoryPackageEventsEmpty } from '@/components/common/list-empty-states'
 import { PackageShCodeButton } from '@/components/common/PackageShCodeButton'
 import { Alert } from '@/components/ui/Alert'
@@ -21,10 +21,12 @@ import {
 } from '@/constants/labels'
 import { useAsyncData } from '@/hooks/useAsyncData'
 import { usePagination } from '@/hooks/usePagination'
+import { deliveriesService } from '@/services/deliveries.service'
 import { historyService } from '@/services/history.service'
 import { packagesService } from '@/services/packages.service'
-import type { DeliveryStatus, HistoryEntry, PackageStatus } from '@/types'
+import type { Delivery, DeliveryStatus, HistoryEntry, Package, PackageStatus } from '@/types'
 import { formatDateTime } from '@/utils/date'
+import { isDeliveryCode } from '@/utils/delivery-code'
 import { sortRows, toggleTableSort } from '@/utils/table-sort'
 
 const DEFAULT_SORT: TableSortState = { key: 'date', direction: 'desc' }
@@ -90,17 +92,61 @@ function HistoryStatusChange({ entry }: { entry: HistoryEntry }) {
   )
 }
 
+function HistoryCodeCell({
+  entry,
+  packageById,
+  deliveryById,
+  deliveryByCode,
+}: {
+  entry: HistoryEntry
+  packageById: Map<string, Package>
+  deliveryById: Map<string, Delivery>
+  deliveryByCode: Map<string, Delivery>
+}) {
+  if (entry.entity === 'package') {
+    const pkg = packageById.get(entry.entityId)
+    if (pkg) return <PackageShCodeButton pkg={pkg} />
+  }
+
+  const deliveryFromEntity =
+    entry.entity === 'delivery' ? deliveryById.get(entry.entityId) : undefined
+  const deliveryFromCode = entry.relatedCode ? deliveryByCode.get(entry.relatedCode) : undefined
+  const delivery = deliveryFromEntity ?? deliveryFromCode
+
+  if (delivery) {
+    return (
+      <Link
+        to={`/deliveries/${delivery.id}`}
+        className="font-mono text-sm font-semibold text-primary hover:underline"
+      >
+        {delivery.code}
+      </Link>
+    )
+  }
+
+  if (entry.relatedCode && isDeliveryCode(entry.relatedCode)) {
+    return <span className="font-mono text-sm font-semibold text-text-primary">{entry.relatedCode}</span>
+  }
+
+  return entry.relatedCode ? (
+    <span className="font-mono text-sm font-semibold text-text-primary">{entry.relatedCode}</span>
+  ) : (
+    <span className="text-text-muted">—</span>
+  )
+}
+
 export default function HistoryPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const entityId = searchParams.get('entityId') ?? ''
   const { data, loading } = useAsyncData(
     async () => {
-      const [history, packages, pkg] = await Promise.all([
+      const [history, packages, deliveries, pkg] = await Promise.all([
         historyService.getAll(),
         packagesService.getAll(),
+        deliveriesService.getAll(),
         entityId ? packagesService.getById(entityId) : Promise.resolve(null),
       ])
-      return { history, packages, pkg }
+      return { history, packages, deliveries, pkg }
     },
     [entityId],
   )
@@ -109,6 +155,14 @@ export default function HistoryPage() {
   const packageById = useMemo(
     () => new Map((data?.packages ?? []).map((item) => [item.id, item])),
     [data?.packages],
+  )
+  const deliveryById = useMemo(
+    () => new Map((data?.deliveries ?? []).map((item) => [item.id, item])),
+    [data?.deliveries],
+  )
+  const deliveryByCode = useMemo(
+    () => new Map((data?.deliveries ?? []).map((item) => [item.code, item])),
+    [data?.deliveries],
   )
   const [entity, setEntity] = useState('')
   const [search, setSearch] = useState('')
@@ -165,17 +219,14 @@ export default function HistoryPage() {
       key: 'code',
       header: 'Código',
       sortable: true,
-      render: (h) => {
-        if (h.entity === 'package') {
-          const pkg = packageById.get(h.entityId)
-          if (pkg) return <PackageShCodeButton pkg={pkg} />
-        }
-        return h.relatedCode ? (
-          <span className="font-mono text-sm font-semibold">{h.relatedCode}</span>
-        ) : (
-          <span className="text-text-muted">—</span>
-        )
-      },
+      render: (h) => (
+        <HistoryCodeCell
+          entry={h}
+          packageById={packageById}
+          deliveryById={deliveryById}
+          deliveryByCode={deliveryByCode}
+        />
+      ),
     },
     {
       key: 'description',
